@@ -1,22 +1,23 @@
-import { SITE } from "@/lib/seo"
+import Link from "next/link"
+import { SITE, withBasePath } from "@/lib/seo"
 
 /**
  * Footer — sticks to the bottom of short viewports (mt-auto inside the
- * layout's min-h-dvh flex column) and is pushed down naturally on long ones.
- * Safe-area inset keeps it clear of the iOS home indicator.
+ * layout's min-h-dvh flex column). Links: research pages, machine-readable
+ * sources for agents, and the protocol anchors on the home route.
  */
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-stroke-dim bg-surface-inset pb-[env(safe-area-inset-bottom)]">
+    <footer className="mt-auto border-t border-stroke-default bg-surface-secondary pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
-          <p className="font-mono text-lg font-semibold tracking-tight">
-            FAME<span className="text-brand-green">{"//"}</span>
+          <p className="font-mono text-lg font-medium tracking-tight text-content-raise">
+            FAME<span className="text-content-accent">{"//"}</span>
           </p>
-          <p className="mt-2 max-w-xs text-sm text-content-faint">{SITE.tagline}</p>
-          <p className="mt-4 flex items-center gap-2 font-mono text-[11px] text-content-faint">
+          <p className="mt-2 max-w-xs text-sm text-content-tertiary">{SITE.tagline}</p>
+          <p className="mt-4 flex items-center gap-2 font-mono text-[11px] text-content-tertiary">
             <span
-              className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-brand-green"
+              className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-content-accent"
               aria-hidden="true"
             />
             All systems nominal · slot 284,119,204
@@ -24,22 +25,38 @@ export function Footer() {
         </div>
 
         <nav aria-label="Research">
-          <p className="font-mono text-xs uppercase tracking-widest text-content-faint">Research</p>
+          <p className="text-mono-xs text-content-tertiary">RESEARCH</p>
           <ul className="mt-3 space-y-1 text-sm">
             <li>
-              <a
-                href="#research"
-                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
+              <Link
+                href="/journal"
+                className="inline-flex min-h-11 items-center text-content-secondary transition-colors hover:text-content-default"
               >
                 Journal
-              </a>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/journal/liquidity-ratios-emission-caps"
+                className="inline-flex min-h-11 items-center text-content-secondary transition-colors hover:text-content-default"
+              >
+                Liquidity ratios &amp; emission caps
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/journal/formal-verification-defi-safety"
+                className="inline-flex min-h-11 items-center text-content-secondary transition-colors hover:text-content-default"
+              >
+                Formal verification as a safety layer
+              </Link>
             </li>
             <li>
               <a
                 href={SITE.repo}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
+                className="inline-flex min-h-11 items-center text-content-secondary transition-colors hover:text-content-default"
               >
                 GitHub — fame-program
               </a>
@@ -47,38 +64,47 @@ export function Footer() {
           </ul>
         </nav>
 
-        <nav aria-label="Protocol">
-          <p className="font-mono text-xs uppercase tracking-widest text-content-faint">Protocol</p>
+        <nav aria-label="Protocol and sources">
+          <p className="text-mono-xs text-content-tertiary">PROTOCOL</p>
           <ul className="mt-3 space-y-1 text-sm">
             <li>
-              <a
-                href="#stability"
-                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
+              <Link
+                href="/#stability"
+                className="inline-flex min-h-11 items-center text-content-secondary transition-colors hover:text-content-default"
               >
                 Safety model
-              </a>
+              </Link>
             </li>
             <li>
-              <a
-                href="#build"
-                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
+              <Link
+                href="/#build"
+                className="inline-flex min-h-11 items-center text-content-secondary transition-colors hover:text-content-default"
               >
                 Parametric order flow
-              </a>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/#access"
+                className="inline-flex min-h-11 items-center text-content-secondary transition-colors hover:text-content-default"
+              >
+                Request access
+              </Link>
             </li>
             <li>
               <a
-                href="#access"
-                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
+                href={withBasePath("/llms.txt")}
+                type="text/plain"
+                className="inline-flex min-h-11 items-center text-content-secondary transition-colors hover:text-content-default"
               >
-                Request access
+                llms.txt — sources for agents
               </a>
             </li>
           </ul>
         </nav>
       </div>
-      <div className="border-t border-stroke-dim/60">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 font-mono text-[11px] text-content-faint sm:px-6">
+      <div className="border-t border-stroke-secondary">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 font-mono text-[11px] text-content-tertiary sm:px-6">
           <span>© 2026 FAME Protocol. Figures illustrative — verify from primary sources.</span>
           <span>Formal verification: CI-gated · mint authority: burned</span>
         </div>

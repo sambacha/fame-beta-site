@@ -38,9 +38,9 @@ export class SectionBoundary extends Component<SectionBoundaryProps, SectionBoun
       return (
         <div
           role="alert"
-          className="mx-auto w-full max-w-3xl rounded-md border border-stroke-dim bg-surface-base p-8 text-center"
+          className="mx-auto w-full max-w-3xl rounded-md border border-stroke-default bg-surface-raise p-8 text-center"
         >
-          <p className="font-mono text-xs tracking-widest text-brand-amber">
+          <p className="text-mono-xs text-content-notice">
             MODULE DEGRADED — {this.props.sectionName.toUpperCase()}
           </p>
           <p className="mt-3 text-content-secondary">
@@ -49,11 +49,11 @@ export class SectionBoundary extends Component<SectionBoundaryProps, SectionBoun
           <button
             type="button"
             onClick={this.handleRetry}
-            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-tremor-default border border-brand-green/40 bg-brand-green/10 px-5 font-mono text-sm text-brand-green transition-colors hover:bg-brand-green/20"
+            className="mt-6 inline-flex min-h-11 items-center justify-center rounded-tremor-default border border-stroke-accent-tertiary bg-surface-accent px-5 font-mono text-sm text-content-accent transition-colors hover:bg-surface-accent-hover"
           >
             ⟳ Retry section
           </button>
-          <p className="mt-3 font-mono text-[11px] text-content-faint">
+          <p className="mt-3 font-mono text-[11px] text-content-tertiary">
             attempt {this.state.retries + 1} · error boundary v2
           </p>
         </div>

@@ -28,6 +28,13 @@ export const SITE = {
 
 export type LdGraphNode = Record<string, unknown>
 
+export const JOURNAL_PATH = "/journal"
+
+/** Absolute URL of a journal article page (the JSON-LD @id / canonical form). */
+export function journalArticleUrl(slug: string): string {
+  return `${SITE.url}${BASE_PATH}/journal/${slug}`
+}
+
 export function buildOrganizationLd(): LdGraphNode {
   return {
     "@type": "Organization",
@@ -83,6 +90,32 @@ export function buildLdGraph(extraNodes: LdGraphNode[]): string {
   })
 }
 
+/** FAQPage node — built from an article's FAQ so rich results can surface it. */
+export function buildFaqLd(faq: { q: string; a: string }[]): LdGraphNode {
+  return {
+    "@type": "FAQPage",
+    "@id": `${SITE.url}${BASE_PATH}/journal#faq`,
+    mainEntity: faq.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  }
+}
+
+/** BreadcrumbList for / and /journal/<slug>. */
+export function buildBreadcrumbLd(trail: { name: string; path: string }[]): LdGraphNode {
+  return {
+    "@type": "BreadcrumbList",
+    itemListElement: trail.map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: crumb.name,
+      item: `${SITE.url}${BASE_PATH}${crumb.path}`,
+    })),
+  }
+}
+
 export function buildArticleLd(article: {
   slug: string
   seoTitle: string
@@ -91,7 +124,7 @@ export function buildArticleLd(article: {
   datePublished: string
   dateModified: string
 }): LdGraphNode {
-  const url = `${SITE.url}/journal/${article.slug}`
+  const url = journalArticleUrl(article.slug)
   return {
     "@type": "BlogPosting",
     "@id": `${url}#post`,

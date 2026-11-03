@@ -48,7 +48,7 @@ function MetricHint({ label, hint }: { label: string; hint: string }) {
       <Tooltip.Root>
         <Tooltip.Trigger
           aria-label={`About ${label}`}
-          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-tremor-default text-content-faint transition-colors hover:text-brand-green"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-tremor-default text-content-tertiary transition-colors hover:text-content-default"
         >
           <span aria-hidden="true" className="text-sm">
             ⓘ
@@ -56,7 +56,7 @@ function MetricHint({ label, hint }: { label: string; hint: string }) {
         </Tooltip.Trigger>
         <Tooltip.Portal>
           <Tooltip.Positioner sideOffset={8} className="z-60">
-            <Tooltip.Popup className="max-w-64 rounded-tremor-default border border-stroke-dim bg-surface-raised p-3 text-xs leading-relaxed text-content-secondary shadow-tremor-dropdown">
+            <Tooltip.Popup className="max-w-64 rounded-tremor-default border border-stroke-default bg-surface-raised p-3 text-xs leading-relaxed text-content-secondary shadow-tremor-dropdown">
               {hint}
             </Tooltip.Popup>
           </Tooltip.Positioner>
@@ -144,21 +144,17 @@ export function HeroBlotter() {
       ref={ref}
       id="top"
       aria-labelledby="hero-title"
-      className="relative overflow-hidden border-b border-stroke-dim"
+      className="relative overflow-hidden border-b border-stroke-default"
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_70%_0%,oklch(0.8_0.15_162/0.07),transparent_70%)]"
-      />
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:py-20">
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
-            <p className="font-mono text-xs tracking-[0.25em] text-brand-green">
+            <p className="text-mono-xs text-content-accent">
               FAME {"//"} PARAMETRIC PARLAY INFRASTRUCTURE
             </p>
             <h1
               id="hero-title"
-              className="mt-4 text-balance text-4xl font-semibold leading-tight tracking-tight text-content-primary sm:text-5xl"
+              className="mt-4 text-balance text-4xl font-medium leading-tight tracking-tight text-content-raise sm:text-5xl"
             >
               {institutional
                 ? "Parametric parlays with formal settlement guarantees."
@@ -172,21 +168,21 @@ export function HeroBlotter() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="#access"
-                className="inline-flex min-h-11 items-center rounded-tremor-default bg-brand-green px-6 text-sm font-semibold text-surface-inset transition-colors hover:bg-brand-green-emphasis"
+                className="inline-flex min-h-11 items-center rounded-tremor-default bg-surface-accent-inverse px-6 text-mono-sm text-content-inverse transition-colors hover:bg-surface-accent-inverse-hover"
               >
                 Request access
               </a>
               <a
                 href="#build"
-                className="inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-strong px-6 font-mono text-sm text-content-primary transition-colors hover:border-brand-green hover:text-brand-green"
+                className="inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-raise px-6 font-mono text-sm text-content-default transition-colors hover:bg-surface-hover"
               >
                 Build a parley ↓
               </a>
             </div>
           </div>
 
-          <div className="rounded-tremor-default border border-stroke-dim bg-surface-inset/60 p-5">
-            <p className="font-mono text-[11px] uppercase tracking-widest text-content-faint">
+          <div className="rounded-tremor-default border border-stroke-default bg-surface-secondary/60 p-5">
+            <p className="text-mono-xs text-content-tertiary">
               {institutional ? "Risk envelope · illustrative" : "What you get · plain terms"}
             </p>
             {institutional ? (
@@ -198,29 +194,29 @@ export function HeroBlotter() {
                   ["Upgrade timelock", "48h public"],
                 ].map(([term, value]) => (
                   <div key={term}>
-                    <dt className="text-[11px] uppercase tracking-wider text-content-faint">
+                    <dt className="text-[11px] uppercase tracking-wider text-content-tertiary">
                       {term}
                     </dt>
-                    <dd className="mt-1 text-lg text-brand-green">{value}</dd>
+                    <dd className="mt-1 text-lg text-content-accent">{value}</dd>
                   </div>
                 ))}
               </dl>
             ) : (
               <ul className="mt-4 space-y-3 text-sm text-content-secondary">
                 <li className="flex gap-3">
-                  <span aria-hidden="true" className="text-brand-green">
+                  <span aria-hidden="true" className="text-content-accent">
                     ✓
                   </span>
                   One public curve — everyone gets the same price, same slot.
                 </li>
                 <li className="flex gap-3">
-                  <span aria-hidden="true" className="text-brand-green">
+                  <span aria-hidden="true" className="text-content-accent">
                     ✓
                   </span>
                   Liquidity stays in the program — you can check it every two seconds.
                 </li>
                 <li className="flex gap-3">
-                  <span aria-hidden="true" className="text-brand-green">
+                  <span aria-hidden="true" className="text-content-accent">
                     ✓
                   </span>
                   Supply can never exceed 1,000,000,000 FAME. It is math, not a promise.
@@ -233,15 +229,20 @@ export function HeroBlotter() {
         {/* ── Metrics strip ─────────────────────────────────────────────── */}
         <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {HERO_METRICS.map((stat) => (
-            <Card key={stat.label} className="!bg-surface-base !p-5 !ring-stroke-dim">
+            <Card key={stat.label} className="!bg-surface-raise !p-5 !ring-stroke-default">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-tremor-label text-tremor-content-subtle">{stat.label}</p>
                 <MetricHint label={stat.label} hint={stat.hint} />
               </div>
               <div className="mt-2 flex items-center gap-3">
-                <Metric className="!text-content-primary">{stat.value}</Metric>
+                <Metric className="!text-content-default">{stat.value}</Metric>
                 <BadgeDelta
                   deltaType={stat.deltaPct >= 0 ? "moderateIncrease" : "moderateDecrease"}
+                  className={
+                    stat.deltaPct >= 0
+                      ? "!bg-content-accent/10 !text-content-accent !ring-content-accent/20"
+                      : "!bg-content-error/10 !text-content-error !ring-content-error/20"
+                  }
                 >
                   {formatPct(stat.deltaPct)}
                 </BadgeDelta>
@@ -252,7 +253,7 @@ export function HeroBlotter() {
 
         {/* ── Charts row ────────────────────────────────────────────────── */}
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
-          <Card className="!bg-surface-base !p-5 !ring-stroke-dim lg:col-span-2">
+          <Card className="!bg-surface-raise !p-5 !ring-stroke-default lg:col-span-2">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-tremor-default font-medium text-tremor-content-emphasis">
@@ -262,7 +263,12 @@ export function HeroBlotter() {
                   USD millions · institutional vs retail sleeves
                 </p>
               </div>
-              <Badge color="emerald">HEALTHY</Badge>
+              <Badge
+                color="emerald"
+                className="!bg-content-accent/10 !text-content-accent !ring-content-accent/20"
+              >
+                HEALTHY
+              </Badge>
             </div>
             <AreaChart
               data={buildVolumeSeries()}
@@ -272,11 +278,11 @@ export function HeroBlotter() {
               valueFormatter={(value) => `$${value}M`}
               className="mt-4 h-44"
               showLegend
-              showGradient
+              showGradient={false}
             />
           </Card>
 
-          <Card className="!bg-surface-base !p-5 !ring-stroke-dim">
+          <Card className="!bg-surface-raise !p-5 !ring-stroke-default">
             <p className="text-tremor-default font-medium text-tremor-content-emphasis">
               Liquidity composition
             </p>
@@ -308,25 +314,30 @@ export function HeroBlotter() {
         </div>
 
         {/* ── Live blotter ──────────────────────────────────────────────── */}
-        <Card className="mt-4 !bg-surface-base !p-0 !ring-stroke-dim">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke-dim px-5 py-4">
+        <Card className="mt-4 !bg-surface-raise !p-0 !ring-stroke-default">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke-default px-5 py-4">
             <div className="flex items-center gap-3">
-              <h2 className="font-mono text-sm font-semibold tracking-widest text-content-primary">
+              <h2 className="font-mono text-sm font-medium tracking-widest text-content-default">
                 PARLAY BLOTTER
               </h2>
               {live ? (
-                <span className="inline-flex items-center gap-2 rounded-tremor-full border border-brand-green/30 bg-brand-green/10 px-2.5 py-1 font-mono text-[10px] tracking-widest text-brand-green">
+                <span className="inline-flex items-center gap-2 rounded-tremor-full border border-stroke-accent-quaternary bg-surface-accent px-2.5 py-1 font-mono text-[10px] tracking-widest text-content-accent">
                   <span
-                    className="live-dot h-1.5 w-1.5 rounded-full bg-brand-green"
+                    className="live-dot h-1.5 w-1.5 rounded-full bg-content-accent"
                     aria-hidden="true"
                   />
                   LIVE
                 </span>
               ) : (
-                <Badge color="gray">PAUSED</Badge>
+                <Badge
+                  color="gray"
+                  className="!bg-content-tertiary/10 !text-content-secondary !ring-stroke-default"
+                >
+                  PAUSED
+                </Badge>
               )}
             </div>
-            <p className="font-mono text-[11px] text-content-faint">
+            <p className="font-mono text-[11px] text-content-tertiary">
               {institutional
                 ? "ρ = leg correlation · slot-settled"
                 : "Simulated fills for demonstration"}
@@ -340,25 +351,29 @@ export function HeroBlotter() {
           <div className="overflow-x-auto">
             <Table className="[&_table]:w-full">
               <TableHead>
-                <TableRow className="!border-stroke-dim">
+                <TableRow className="!border-stroke-default">
                   <TableRowCells institutional={institutional} />
                 </TableRow>
               </TableHead>
               <TableBody>
                 {rows.map((row) => (
-                  <TableRow key={row.id} className="!border-stroke-dim">
+                  <TableRow key={row.id} className="!border-stroke-default">
                     {institutional && (
                       <>
-                        <TableCell className="!px-5 font-mono text-xs text-content-faint">
+                        <TableCell className="!px-5 font-mono text-xs text-content-tertiary">
                           {row.time}
                         </TableCell>
-                        <TableCell className="!px-5 font-mono text-sm text-content-primary">
+                        <TableCell className="!px-5 font-mono text-sm text-content-default">
                           {row.market}
                         </TableCell>
                         <TableCell className="!px-5">
                           <Badge
                             color={row.side === "BUY" ? "emerald" : "rose"}
-                            className="!rounded-tremor-small font-mono"
+                            className={`!rounded-tremor-small font-mono ${
+                              row.side === "BUY"
+                                ? "!bg-content-accent/10 !text-content-accent !ring-content-accent/20"
+                                : "!bg-content-error/10 !text-content-error !ring-content-error/20"
+                            }`}
                           >
                             {row.side}
                           </Badge>
@@ -372,19 +387,21 @@ export function HeroBlotter() {
                       </>
                     )}
                     {!institutional && (
-                      <TableCell className="!px-5 font-mono text-sm text-content-primary">
+                      <TableCell className="!px-5 font-mono text-sm text-content-default">
                         {row.market}
                       </TableCell>
                     )}
                     <TableCell
-                      className={`!px-5 text-right font-mono text-sm tabular-nums text-content-primary ${
+                      className={`!px-5 text-right font-mono text-sm tabular-nums text-content-default ${
                         flash?.id === row.id ? (flash.dir === "up" ? "flash-up" : "flash-down") : ""
                       }`}
                     >
                       {row.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell className="!px-5 text-right font-mono text-sm tabular-nums">
-                      <span className={row.deltaPct >= 0 ? "text-brand-green" : "text-brand-coral"}>
+                      <span
+                        className={row.deltaPct >= 0 ? "text-content-accent" : "text-content-error"}
+                      >
                         {formatPct(row.deltaPct)}
                       </span>
                     </TableCell>
@@ -395,7 +412,13 @@ export function HeroBlotter() {
                       <TableCell className="!px-5">
                         <Badge
                           color={STATUS_COLORS[row.status]}
-                          className="!rounded-tremor-small font-mono"
+                          className={`!rounded-tremor-small font-mono ${
+                            row.status === "SETTLED"
+                              ? "!bg-content-accent/10 !text-content-accent !ring-content-accent/20"
+                              : row.status === "PROOF"
+                                ? "!bg-content-info/10 !text-content-info !ring-content-info/20"
+                                : "!bg-content-notice/10 !text-content-notice !ring-content-notice/20"
+                          }`}
                         >
                           {row.status}
                         </Badge>
@@ -421,7 +444,7 @@ function TableRowCells({ institutional }: { institutional: boolean }) {
       {heads.map((head) => (
         <TableHeaderCell
           key={head}
-          className="!bg-surface-inset !px-5 !py-3 font-mono !text-[11px] uppercase tracking-widest !text-content-faint"
+          className="!bg-surface-secondary !px-5 !py-3 font-mono !text-[11px] uppercase tracking-widest !text-content-tertiary"
         >
           {head}
         </TableHeaderCell>

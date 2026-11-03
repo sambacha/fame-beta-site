@@ -4,6 +4,7 @@ import { Field } from "@base-ui-components/react/field"
 import { Select } from "@base-ui-components/react/select"
 import { type FormEvent, useRef, useState } from "react"
 import { usePersona } from "@/components/persona-context"
+import { ACCESS_CONTENT } from "@/lib/site-content"
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -29,7 +30,7 @@ function validateEmail(value: string): string | null {
 }
 
 const CONTROL_CLASS =
-  "min-h-11 w-full rounded-tremor-default border border-stroke-strong bg-surface-inset px-3 py-2.5 text-base text-content-primary placeholder:text-content-faint focus:border-brand-green focus:outline-none"
+  "min-h-11 w-full rounded-tremor-default border border-stroke-raise bg-surface-secondary px-3 py-2.5 text-base text-content-default placeholder:text-content-tertiary focus:outline-none focus:border-stroke-accent-secondary"
 
 /**
  * Request Access — the conversion CTA. Base-UI Field primitives give us
@@ -51,6 +52,7 @@ export function AccessCTA() {
   }
 
   const institutional = persona === "institutional"
+  const points = institutional ? ACCESS_CONTENT.institutional : ACCESS_CONTENT.retail
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -80,37 +82,24 @@ export function AccessCTA() {
     <section
       id="access"
       aria-labelledby="access-title"
-      className="cv-auto border-b border-stroke-dim"
+      className="cv-auto border-b border-stroke-default"
     >
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-20">
         <div>
-          <p className="font-mono text-xs tracking-[0.25em] text-brand-green">REQUEST ACCESS</p>
+          <p className="text-mono-xs text-content-accent">{ACCESS_CONTENT.eyebrow}</p>
           <h2
             id="access-title"
-            className="mt-3 text-3xl font-semibold tracking-tight text-content-primary sm:text-4xl"
+            className="mt-3 text-3xl font-medium tracking-tight text-content-raise sm:text-4xl"
           >
-            {institutional ? "Talk to the protocol team." : "Get on the list."}
+            {institutional ? ACCESS_CONTENT.institutionalTitle : ACCESS_CONTENT.retailTitle}
           </h2>
           <p className="mt-4 max-w-md text-content-secondary">
-            {institutional
-              ? "Notional onboarding for parley vaults is gated to keep the curve fair. Bring your mandate; we bring the proof pack — program constants, invariant set, and the audit folder."
-              : "Retail access opens in waves so the curve stays honest. Join the list and you will get a plain-language walkthrough before you ever commit capital."}
+            {institutional ? ACCESS_CONTENT.institutionalLede : ACCESS_CONTENT.retailLede}
           </p>
           <ul className="mt-8 space-y-4">
-            {(institutional
-              ? [
-                  "Proof pack within 48 hours: constants, invariants, CI configuration.",
-                  "Vault desk for size — OTC settlement with slot-level proofs.",
-                  "Risk API: recompute the liquidity ratio from raw chain state.",
-                ]
-              : [
-                  "No minimum size on the public curve.",
-                  "Plain-language guides before any leg is opened.",
-                  "Your exit rights always settle first — by program rule.",
-                ]
-            ).map((item) => (
+            {points.items.map((item) => (
               <li key={item} className="flex gap-3 text-sm text-content-secondary">
-                <span aria-hidden="true" className="mt-0.5 text-brand-green">
+                <span aria-hidden="true" className="mt-0.5 text-content-accent">
                   ✓
                 </span>
                 {item}
@@ -119,23 +108,21 @@ export function AccessCTA() {
           </ul>
         </div>
 
-        <div className="rounded-tremor-default border border-stroke-dim bg-surface-base p-6 sm:p-8">
+        <div className="rounded-tremor-default border border-stroke-default bg-surface-raise p-6 shadow-border-small sm:p-8">
           {status === "success" ? (
             <div className="flex min-h-80 flex-col items-start justify-center">
-              <p className="font-mono text-[11px] uppercase tracking-widest text-brand-green">
-                Request received
-              </p>
-              <p className="mt-3 text-2xl font-semibold text-content-primary">
+              <p className="text-mono-xs text-content-accent">Request received</p>
+              <p className="mt-3 text-2xl font-medium text-content-raise">
                 {institutional ? "Your desk is in the queue." : "You're on the list."}
               </p>
               <p className="mt-3 max-w-sm text-sm text-content-secondary">
-                We reply within two business days. Meanwhile, the journal below covers how the risk
-                engine and proof set actually work.
+                We reply within two business days. Meanwhile, the journal covers how the risk engine
+                and proof set actually work.
               </p>
               <button
                 type="button"
                 onClick={resetForm}
-                className="mt-6 inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-strong px-4 font-mono text-sm text-content-secondary transition-colors hover:border-brand-green hover:text-brand-green"
+                className="mt-6 inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-raise px-4 font-mono text-sm text-content-secondary transition-colors hover:bg-surface-hover hover:text-content-default"
               >
                 Submit another request ↺
               </button>
@@ -150,7 +137,7 @@ export function AccessCTA() {
               >
                 <Field.Label className="text-sm font-medium text-content-secondary">
                   Full name{" "}
-                  <span className="text-brand-coral" aria-hidden="true">
+                  <span className="text-content-error" aria-hidden="true">
                     *
                   </span>
                 </Field.Label>
@@ -164,7 +151,7 @@ export function AccessCTA() {
                   autoComplete="name"
                   className={CONTROL_CLASS}
                 />
-                <Field.Error className="text-xs text-brand-coral" />
+                <Field.Error className="text-xs text-content-error" />
               </Field.Root>
 
               <Field.Root
@@ -175,7 +162,7 @@ export function AccessCTA() {
               >
                 <Field.Label className="text-sm font-medium text-content-secondary">
                   Work email{" "}
-                  <span className="text-brand-coral" aria-hidden="true">
+                  <span className="text-content-error" aria-hidden="true">
                     *
                   </span>
                 </Field.Label>
@@ -191,7 +178,7 @@ export function AccessCTA() {
                   autoComplete="email"
                   className={CONTROL_CLASS}
                 />
-                <Field.Error className="text-xs text-brand-coral" />
+                <Field.Error className="text-xs text-content-error" />
               </Field.Root>
 
               <Field.Root name="org" className="flex flex-col gap-1.5">
@@ -223,22 +210,22 @@ export function AccessCTA() {
                     className={`${CONTROL_CLASS} inline-flex items-center justify-between gap-3`}
                   >
                     <Select.Value>
-                      <span className={values.notional ? "" : "text-content-faint"}>
+                      <span className={values.notional ? "" : "text-content-tertiary"}>
                         {values.notional ?? "Select a band…"}
                       </span>
                     </Select.Value>
-                    <Select.Icon className="text-content-faint">
+                    <Select.Icon className="text-content-tertiary">
                       <span aria-hidden="true">▾</span>
                     </Select.Icon>
                   </Select.Trigger>
                   <Select.Portal>
                     <Select.Positioner sideOffset={6} className="z-60 outline-none">
-                      <Select.Popup className="min-w-56 rounded-tremor-default border border-stroke-dim bg-surface-raised p-1 shadow-tremor-dropdown">
+                      <Select.Popup className="min-w-56 rounded-tremor-default border border-stroke-default bg-surface-raise p-1 shadow-menu">
                         {NOTIONAL_BANDS.map((band) => (
                           <Select.Item
                             key={band}
                             value={band}
-                            className="cursor-pointer rounded-sm px-3 py-2.5 text-sm text-content-primary outline-none data-[highlighted]:bg-brand-green/10"
+                            className="cursor-pointer rounded-sm px-3 py-2.5 text-sm text-content-default outline-none data-[highlighted]:bg-surface-accent"
                           >
                             <Select.ItemText>{band}</Select.ItemText>
                           </Select.Item>
@@ -251,11 +238,11 @@ export function AccessCTA() {
 
               <button
                 type="submit"
-                className="mt-2 inline-flex min-h-11 items-center justify-center rounded-tremor-default bg-brand-green px-6 text-sm font-semibold text-surface-inset transition-colors hover:bg-brand-green-emphasis"
+                className="mt-2 inline-flex min-h-11 items-center justify-center rounded-tremor-default bg-surface-accent-inverse px-6 text-mono-sm text-content-inverse transition-colors hover:bg-surface-accent-inverse-hover"
               >
                 {institutional ? "Request vault access" : "Join the waitlist"}
               </button>
-              <p className="text-[11px] leading-relaxed text-content-faint">
+              <p className="text-[11px] leading-relaxed text-content-tertiary">
                 No token sale, no spam. We use the address only for onboarding correspondence.
               </p>
             </form>

@@ -29,6 +29,7 @@ const MIME = {
   ".webp": "image/webp",
   ".ico": "image/x-icon",
   ".txt": "text/plain; charset=utf-8",
+  ".md": "text/markdown; charset=utf-8",
   ".xml": "application/xml; charset=utf-8",
   ".webmanifest": "application/manifest+json",
   ".woff": "font/woff",
@@ -57,6 +58,10 @@ function route(absolute) {
     if (statSync(absolute).isFile()) return { path: absolute, status: 200 }
     const index = join(absolute, "index.html")
     if (existsSync(index)) return { path: index, status: 200 }
+    // A directory that also exists as a flat .html asset (Next exports both
+    // out/journal.html and out/journal/<slug>.html) must not shadow it.
+    const asSiblingHtml = `${absolute}.html`
+    if (existsSync(asSiblingHtml)) return { path: asSiblingHtml, status: 200 }
     return null // directories are never listed
   }
   const asHtml = `${absolute}.html`

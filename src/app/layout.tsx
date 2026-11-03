@@ -39,7 +39,10 @@ export const metadata: Metadata = {
     "Solana",
   ],
   authors: [{ name: SITE.name, url: SITE.url }],
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    types: { "text/markdown": withBasePath("/sources/home.md") },
+  },
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
@@ -94,7 +97,7 @@ export default function RootLayout({
         <PersonaProvider>
           <a
             href="#main"
-            className="skip-link rounded-tremor-default bg-brand-green px-4 py-2 font-mono text-sm text-surface-inset"
+            className="skip-link rounded-tremor-default bg-surface-accent-inverse px-4 py-2 text-mono-sm text-content-inverse"
           >
             Skip to main content
           </a>

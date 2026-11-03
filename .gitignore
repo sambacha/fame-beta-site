@@ -53,3 +53,9 @@ prompt
 server.log
 # Skills directory
 /skills/
+# generated agentic-SEO content sources (bun run sources)
+/public/sources/
+/public/llms.txt
+/public/llms-full.txt
+dev.log
+tsconfig.tsbuildinfo

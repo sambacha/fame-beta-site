@@ -162,3 +162,27 @@ these numbers with ~25–30% headroom.
 **Rollback:** deployments are versioned by the hosts (Pages deployments list;
 Cloudflare Pages rollback). Re-running the workflow re-deploys `main`; the
 gates make a red build undeployable by construction.
+
+---
+
+## 1.1.0 — Journal pages, agentic sources, canonical Oxide integration
+
+Polya record for the second deployment-surface change (see docs/COLOR-AUDIT.md
+for the full two-pass review):
+
+1. **Understand** — the "read analysis" targets were dialogs; JSON-LD pointed
+   at /journal/<slug> URLs that did not exist; the sitemap shipped only hash
+   fragments; colors were near-Oxide but drifted on every token.
+2. **Plan** — real /journal routes (static-export SSG), markdown/txt mirrors
+   generated from the typed content modules (single source, zero drift),
+   canonical @oxide/design-system adoption via style imports + a bridge.
+3. **Carry out** — routes /journal and /journal/<slug>; generator
+   scripts/generate-content-sources.mts wired into prebuild; verifier gained
+   required sources/llms artifacts, a docs budget, JSON-LD integrity checks
+   per article and a no-stray-markdown rule (allowlist: sources/); smoke
+   gained 30+ assertions (journal pages, md mirrors, llms.txt, canonicals);
+   local gate now builds with GitHub Pages coordinates (`bun run test`).
+4. **Look back** — budgets re-measured: total 976 KB gz (≤ 1.4 MB), js
+   422 KB (≤ 550), css 17 KB (≤ 40), docs 17 KB (≤ 80), html pages ≤ 40 KB
+   each. All host workflows unchanged apart from CI now building with Pages
+   coordinates.

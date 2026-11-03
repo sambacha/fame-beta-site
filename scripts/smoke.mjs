@@ -122,11 +122,112 @@ try {
     }
   }
 
+  /* ── 1b. Journal analysis pages ──────────────────────────────────────────── */
+  const JOURNAL_SLUGS = ["liquidity-ratios-emission-caps", "formal-verification-defi-safety"]
+
+  const journalIndex = await get("/journal")
+  check(
+    "GET /journal → 200",
+    journalIndex.response.status === 200,
+    String(journalIndex.response.status),
+  )
+  check("/journal has <h1>", /<h1[\s>]/.test(journalIndex.body))
+  check("/journal has canonical", journalIndex.body.includes('rel="canonical"'))
+  for (const slug of JOURNAL_SLUGS) {
+    check(`/journal links /journal/${slug}`, journalIndex.body.includes(`/journal/${slug}`))
+  }
+
+  for (const slug of JOURNAL_SLUGS) {
+    const page = await get(`/journal/${slug}`)
+    check(`GET /journal/${slug} → 200`, page.response.status === 200, String(page.response.status))
+    check(`/journal/${slug} has <h1>`, /<h1[\s>]/.test(page.body))
+    const canonical = page.body.match(/<link\s+rel="canonical"\s+href="([^"]+)"/)
+    check(`/journal/${slug} has canonical`, Boolean(canonical))
+    if (canonical) {
+      check(
+        `/journal/${slug} canonical points at itself`,
+        canonical[1].endsWith(`/journal/${slug}`),
+        `canonical=${canonical[1]}`,
+      )
+    }
+    const pageLd = [
+      ...page.body.matchAll(/<script\s+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g),
+    ]
+    check(`/journal/${slug} embeds JSON-LD`, pageLd.length > 0)
+    const types = []
+    for (const block of pageLd) {
+      try {
+        const parsed = JSON.parse(block[1])
+        const graph = Array.isArray(parsed["@graph"]) ? parsed["@graph"] : [parsed]
+        types.push(...graph.map((node) => node["@type"]))
+      } catch (error) {
+        check(`/journal/${slug} JSON-LD parses`, false, String(error))
+      }
+    }
+    for (const type of ["BlogPosting", "BreadcrumbList", "FAQPage"]) {
+      check(`/journal/${slug} JSON-LD has ${type}`, types.includes(type))
+    }
+    check(
+      `/journal/${slug} links its markdown mirror`,
+      page.body.includes(`/sources/analysis/${slug}.md`),
+    )
+    check(`/journal/${slug} has the sources note`, page.body.includes("READ AS DATA"))
+    check(
+      `/journal/${slug} reserves the chart containers (recharts)`,
+      page.body.includes("recharts-responsive-container"),
+    )
+    check(`/journal/${slug} has no {{placeholder}} leftovers`, !page.body.includes("{{"))
+    check(`/journal/${slug} has no localhost leak`, !page.body.includes("localhost"))
+  }
+
+  /* ── 1c. Markdown/txt sources for agents ─────────────────────────────────── */
+  const homeMd = await get("/sources/home.md")
+  check("GET /sources/home.md → 200", homeMd.response.status === 200)
+  check(
+    "/sources/home.md is markdown with front-matter",
+    homeMd.body.trimStart().startsWith("---") && homeMd.body.includes("# FAME Protocol"),
+  )
+  const ct = homeMd.response.headers.get("content-type") ?? ""
+  check(
+    "/sources/home.md served as text-ish content-type",
+    ct.includes("text/markdown") || ct.includes("text/plain") || ct.includes("octet-stream"),
+    ct,
+  )
+
+  for (const slug of JOURNAL_SLUGS) {
+    const md = await get(`/sources/analysis/${slug}.md`)
+    check(`GET /sources/analysis/${slug}.md → 200`, md.response.status === 200)
+    check(
+      `/sources/analysis/${slug}.md has front-matter + body`,
+      md.body.trimStart().startsWith("---") && md.body.includes("## FAQ"),
+    )
+    check(
+      `/sources/analysis/${slug}.md embeds the data appendix`,
+      md.body.includes("Data appendix"),
+    )
+  }
+
+  const llms = await get("/llms.txt")
+  check("GET /llms.txt → 200", llms.response.status === 200)
+  check("/llms.txt starts with the site title", llms.body.startsWith("# FAME Protocol"))
+  check(
+    "/llms.txt lists both markdown mirrors",
+    JOURNAL_SLUGS.every((s) => llms.body.includes(`/sources/analysis/${s}.md`)),
+  )
+  check("/llms.txt lists the sitemap", llms.body.includes("/sitemap.xml"))
+
+  const llmsFull = await get("/llms-full.txt")
+  check("GET /llms-full.txt → 200", llmsFull.response.status === 200)
+  check(
+    "/llms-full.txt aggregates home + articles",
+    llmsFull.body.includes("llms-full.txt") && llmsFull.body.includes("## FAQ"),
+  )
+
   /* ── 2. Every referenced local asset resolves ────────────────────────────── */
   const collectRefs = (html, pagePath) =>
     [...html.matchAll(/(?:src|href)="([^"]+)"/g)]
       .map((match) => match[1])
-      .filter((ref) => ref.startsWith("/") && !ref.startsWith("//"))
+      .filter((ref) => ref.startsWith("/") && !ref.startsWith("//") && !ref.includes("#"))
       .map((ref) => ({ ref, pagePath }))
 
   const refs = [...collectRefs(home.body, "/")]

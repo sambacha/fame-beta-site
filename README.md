@@ -74,3 +74,19 @@ Full decision record and Polya problem-solving walkthrough:
 - **A11y**: WAI-ARIA patterns via Base-UI (Select, RadioGroup, Dialog, Field),
   `aria-live` announcements, blur validation, ≥44px targets, skip link,
   WCAG 2.1 AA target.
+
+## Research journal & agentic SEO
+
+- **/journal** index + two analysis pages with their own chart suites
+  (Tremor Area/Bar/Line on the Oxide palette), comparison tables and
+  FAQ — each statically exported, canonicalized and JSON-LD'd
+  (BlogPosting + BreadcrumbList + FAQPage).
+- **Markdown mirrors** for every indexable page:
+  `sources/home.md`, `sources/analysis/<slug>.md`, plus `llms.txt` and
+  `llms-full.txt` for research agents. Generated from the same typed
+  modules the UI renders (`bun run sources`) — HTML and sources cannot
+  drift.
+- **Canonical Oxide design system**: `@oxide/design-system` styles are
+  imported directly; this repo hand-maintains no color values. See
+  docs/COLOR-AUDIT.md for the two-pass adherence review and the
+  third-party (Tremor) alias layer.

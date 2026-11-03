@@ -26,16 +26,16 @@ import { type OrderState, useOrderBuilder } from "./use-order-builder"
 const RISK_LABELS = { conservative: "LOW", balanced: "MED", aggressive: "HIGH" } as const
 
 const CONTROL_CLASS =
-  "min-h-11 w-full rounded-tremor-default border border-stroke-strong bg-surface-inset px-3 py-2.5 text-base text-content-primary placeholder:text-content-faint focus:outline-none"
+  "min-h-11 w-full rounded-tremor-default border border-stroke-raise bg-surface-secondary px-3 py-2.5 text-base text-content-default placeholder:text-content-tertiary focus:outline-none"
 
 type NodeStatus = "idle" | "active" | "validating" | "complete" | "error"
 
 const NODE_STYLES: Record<NodeStatus, string> = {
-  idle: "border-stroke-dim opacity-70",
-  active: "border-brand-green/50 shadow-[0_0_24px_oklch(0.8_0.15_162/0.08)]",
-  validating: "border-brand-amber/60",
-  complete: "border-brand-green/60",
-  error: "border-brand-coral/70",
+  idle: "border-stroke-default opacity-70",
+  active: "border-stroke-accent-tertiary node-active-glow",
+  validating: "border-stroke-notice",
+  complete: "border-stroke-accent-secondary",
+  error: "border-stroke-error",
 }
 
 const STATUS_TEXT: Record<NodeStatus, string> = {
@@ -60,21 +60,21 @@ function FlowNode({
   return (
     <li
       data-status={status}
-      className={`flex h-full flex-col rounded-tremor-default border bg-surface-base p-5 transition-colors ${NODE_STYLES[status]}`}
+      className={`flex h-full flex-col rounded-tremor-default border bg-surface-raise p-5 transition-colors ${NODE_STYLES[status]}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="font-mono text-[11px] uppercase tracking-widest text-content-faint">
+        <p className="text-mono-xs text-content-tertiary">
           {step} · {title}
         </p>
         <p
           className={`font-mono text-[10px] tracking-widest ${
             status === "error"
-              ? "text-brand-coral"
+              ? "text-content-error"
               : status === "validating"
-                ? "text-brand-amber"
+                ? "text-content-notice"
                 : status === "complete"
-                  ? "text-brand-green"
-                  : "text-content-faint"
+                  ? "text-content-accent"
+                  : "text-content-tertiary"
           }`}
         >
           {STATUS_TEXT[status]}
@@ -124,46 +124,46 @@ const TradeSelect = memo(function TradeSelect({
     >
       <Select.Trigger
         aria-label="Primary trade — leg one"
-        className="inline-flex min-h-11 w-full items-center justify-between gap-3 rounded-tremor-default border border-stroke-strong bg-surface-inset px-4 py-2.5 text-left transition-colors data-[popup-open]:border-brand-green"
+        className="inline-flex min-h-11 w-full items-center justify-between gap-3 rounded-tremor-default border border-stroke-raise bg-surface-secondary px-4 py-2.5 text-left transition-colors data-[popup-open]:border-stroke-accent-secondary"
       >
         <Select.Value>
           <span className="block truncate">
             {selected ? (
               <span className="flex items-baseline justify-between gap-3">
-                <span className="text-sm font-medium text-content-primary">{selected.label}</span>
-                <span className="font-mono text-xs text-brand-green">{selected.apr}% APR</span>
+                <span className="text-sm font-medium text-content-default">{selected.label}</span>
+                <span className="font-mono text-xs text-content-accent">{selected.apr}% APR</span>
               </span>
             ) : (
               <span className="text-sm text-content-secondary">Select primary trade…</span>
             )}
           </span>
         </Select.Value>
-        <Select.Icon className="text-content-faint">
+        <Select.Icon className="text-content-tertiary">
           <span aria-hidden="true">▾</span>
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
         <Select.Positioner sideOffset={6} className="z-60 outline-none">
-          <Select.Popup className="scroll-area max-h-96 min-w-80 overflow-y-auto rounded-tremor-default border border-stroke-dim bg-surface-raised p-1 shadow-tremor-dropdown">
+          <Select.Popup className="scroll-area max-h-96 min-w-80 overflow-y-auto rounded-tremor-default border border-stroke-default bg-surface-raise p-1 shadow-menu">
             {TRADE_A_OPTIONS.map((trade) => (
               <Select.Item
                 key={trade.id}
                 value={trade.id}
-                className="grid cursor-pointer grid-cols-[1fr_auto] items-center gap-3 rounded-sm px-3 py-2.5 text-left outline-none data-[highlighted]:bg-brand-green/10"
+                className="grid cursor-pointer grid-cols-[1fr_auto] items-center gap-3 rounded-sm px-3 py-2.5 text-left outline-none data-[highlighted]:bg-surface-accent"
               >
                 <Select.ItemText>
                   <span className="block">
-                    <span className="block text-sm font-medium text-content-primary">
+                    <span className="block text-sm font-medium text-content-default">
                       {trade.label}
                     </span>
-                    <span className="block font-mono text-[11px] text-content-faint">
+                    <span className="block font-mono text-[11px] text-content-tertiary">
                       {trade.strategy} · {RISK_LABELS[trade.risk]} risk
                     </span>
                   </span>
                 </Select.ItemText>
                 <span className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-brand-green">{trade.apr}%</span>
-                  <Select.ItemIndicator className="text-brand-green">
+                  <span className="font-mono text-xs text-content-accent">{trade.apr}%</span>
+                  <Select.ItemIndicator className="text-content-accent">
                     <span aria-hidden="true">✓</span>
                   </Select.ItemIndicator>
                 </span>
@@ -190,25 +190,27 @@ const LegRadio = memo(function LegRadio({
     <Radio.Root
       value={leg.id}
       disabled={disabled}
-      className="grid min-h-11 cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-3 rounded-tremor-default border border-stroke-dim bg-surface-inset p-3 text-left transition-colors hover:border-stroke-strong data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40 data-[checked]:border-brand-green/70 data-[checked]:bg-brand-green/[0.06]"
+      className="grid min-h-11 cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-3 rounded-tremor-default border border-stroke-default bg-surface-secondary p-3 text-left transition-colors hover:border-stroke-raise data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40 data-[checked]:border-stroke-accent-secondary data-[checked]:bg-surface-accent/40"
     >
       <Radio.Indicator
-        className="flex h-4 w-4 items-center justify-center rounded-full border border-stroke-strong data-[checked]:border-brand-green"
+        className="flex h-4 w-4 items-center justify-center rounded-full border border-stroke-raise data-[checked]:border-stroke-accent-secondary"
         render={(props, state) => (
           <span {...props}>
-            {state.checked ? <span className="block h-2 w-2 rounded-full bg-brand-green" /> : null}
+            {state.checked ? (
+              <span className="block h-2 w-2 rounded-full bg-content-accent" />
+            ) : null}
           </span>
         )}
       />
       <span>
-        <span className="block text-sm font-medium text-content-primary">{leg.label}</span>
-        <span className="block font-mono text-[11px] text-content-faint">
+        <span className="block text-sm font-medium text-content-default">{leg.label}</span>
+        <span className="block font-mono text-[11px] text-content-tertiary">
           pairs with {name} · margin engine pre-cleared
         </span>
       </span>
       <span className="text-right font-mono text-xs">
-        <span className="block text-brand-green">{leg.apr}%</span>
-        <span className="block text-content-faint">ρ {leg.correlation.toFixed(2)}</span>
+        <span className="block text-content-accent">{leg.apr}%</span>
+        <span className="block text-content-tertiary">ρ {leg.correlation.toFixed(2)}</span>
       </span>
     </Radio.Root>
   )
@@ -236,7 +238,7 @@ const AmountField = memo(function AmountField({
     <Field.Root name="amount" className="flex flex-col gap-1.5">
       <Field.Label className="text-sm font-medium text-content-secondary">
         Amount (USD){" "}
-        <span aria-hidden="true" className="text-brand-coral">
+        <span aria-hidden="true" className="text-content-error">
           *
         </span>
       </Field.Label>
@@ -254,18 +256,18 @@ const AmountField = memo(function AmountField({
         aria-invalid={error ? "true" : undefined}
         aria-errormessage={error ? "amount-error" : undefined}
         aria-describedby={error ? "amount-error" : "amount-hint"}
-        className={`${CONTROL_CLASS} ${error ? "border-brand-coral focus:border-brand-coral" : "focus:border-brand-green"}`}
+        className={`${CONTROL_CLASS} ${error ? "border-stroke-error focus:border-stroke-error" : "focus:border-stroke-accent-secondary"}`}
       />
       {error ? (
         <p
           id="amount-error"
           aria-live="polite"
-          className="text-xs leading-relaxed text-brand-coral"
+          className="text-xs leading-relaxed text-content-error"
         >
           {error}
         </p>
       ) : (
-        <p id="amount-hint" className="font-mono text-[11px] text-content-faint">
+        <p id="amount-hint" className="font-mono text-[11px] text-content-tertiary">
           Liquidity bound for {tradeLabel}: {formatCompactUsd(maxUsd)} per ticket · min{" "}
           {formatCompactUsd(MIN_TICKET_USD)}
         </p>
@@ -297,7 +299,7 @@ const LegTwoField = memo(function LegTwoField({
         aria-readonly="true"
         className={`${CONTROL_CLASS} cursor-default text-content-secondary`}
       />
-      <p className="font-mono text-[11px] text-content-faint" aria-live="polite">
+      <p className="font-mono text-[11px] text-content-tertiary" aria-live="polite">
         {legTwo
           ? `${legTwo.ratio} · offsets the primary leg's residual exposure`
           : "Sizing = ticket × (1 − |ρ|) — the residual exposure offset"}
@@ -331,13 +333,16 @@ const ConfigSummaryBlock = memo(function ConfigSummaryBlock({
       </p>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-xs">
         {cells.map(([term, value]) => (
-          <div key={term} className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
-            <dt className="text-content-faint">{term}</dt>
+          <div
+            key={term}
+            className="flex justify-between gap-2 border-b border-stroke-secondary/60 pb-1"
+          >
+            <dt className="text-content-tertiary">{term}</dt>
             <dd className="text-right text-content-secondary">{value}</dd>
           </div>
         ))}
       </dl>
-      <p className="mt-2 text-[11px] leading-relaxed text-content-faint">
+      <p className="mt-2 text-[11px] leading-relaxed text-content-tertiary">
         {summary.basis === "ticket"
           ? `Projected on your ${formatCompactUsd(summary.notionalUsd)} ticket · max gain ${formatSignedUsd(summary.maxGainUsd)} · max loss ${formatSignedUsd(summary.maxLossUsd)}.`
           : `Projected at the ${formatCompactUsd(summary.notionalUsd)} reference ticket — enter an amount to resize the projection.`}
@@ -361,7 +366,7 @@ const PayoffChart = memo(function PayoffChart({
         <p className="text-tremor-default font-medium text-tremor-content-emphasis">
           Payoff at settlement vs. spot
         </p>
-        <p className="font-mono text-[11px] text-content-faint">
+        <p className="font-mono text-[11px] text-content-tertiary">
           {hasTicket ? "ticket basis" : "$10k reference basis"}
         </p>
       </figcaption>
@@ -374,10 +379,11 @@ const PayoffChart = memo(function PayoffChart({
         className="mt-3 h-64"
         autoMinValue
         showAnimation={!reducedMotion}
+        showGradient={false}
         showLegend
         curveType="natural"
       />
-      <figcaption className="mt-2 text-[11px] leading-relaxed text-content-faint">
+      <figcaption className="mt-2 text-[11px] leading-relaxed text-content-tertiary">
         Two-leg projection: primary exposure ± correlation-offset hedge + 30-day carry − 15 bps
         venue fee. Band = ±1σ from a 38% annualised vol assumption. Illustrative — not investment
         advice.
@@ -407,15 +413,15 @@ const OrderConfigPanel = memo(function OrderConfigPanel({
     return (
       <section
         aria-labelledby="config-title"
-        className="mt-4 rounded-tremor-default border border-dashed border-stroke-dim bg-surface-inset/40 p-5 sm:p-6"
+        className="mt-4 rounded-tremor-default border border-dashed border-stroke-default bg-surface-secondary/40 p-5 sm:p-6"
       >
         <h3
           id="config-title"
-          className="font-mono text-sm font-semibold uppercase tracking-widest text-content-faint"
+          className="font-mono text-sm font-medium uppercase tracking-widest text-content-tertiary"
         >
           Parametric Order Configuration
         </h3>
-        <p aria-live="polite" className="mt-2 text-sm text-content-faint">
+        <p aria-live="polite" className="mt-2 text-sm text-content-tertiary">
           Locked — select a primary trade to size the ticket and project payoff bounds.
         </p>
       </section>
@@ -425,16 +431,16 @@ const OrderConfigPanel = memo(function OrderConfigPanel({
   return (
     <section
       aria-labelledby="config-title"
-      className="mt-4 rounded-tremor-default border border-stroke-dim bg-surface-base/60 p-5 sm:p-6"
+      className="mt-4 rounded-tremor-default border border-stroke-default bg-surface-raise/60 p-5 sm:p-6"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3
           id="config-title"
-          className="font-mono text-sm font-semibold uppercase tracking-widest text-content-primary"
+          className="font-mono text-sm font-medium uppercase tracking-widest text-content-default"
         >
           Parametric Order Configuration
         </h3>
-        <p className="font-mono text-[11px] text-content-faint">
+        <p className="font-mono text-[11px] text-content-tertiary">
           leg one {orderData.legOne || "—"} · bound {formatCompactUsd(tradeA.maxNotionalUsd)}
         </p>
       </div>
@@ -486,10 +492,8 @@ const SummaryPanel = memo(function SummaryPanel({
   if (phase === "SUBMITTED") {
     return (
       <div className="flex flex-1 flex-col items-start justify-center">
-        <p className="font-mono text-[11px] uppercase tracking-widest text-brand-green">
-          Order routed
-        </p>
-        <p className="mt-2 font-mono text-2xl font-semibold text-content-primary">{ticket}</p>
+        <p className="text-mono-xs text-content-accent">Order routed</p>
+        <p className="mt-2 font-mono text-2xl font-medium text-content-default">{ticket}</p>
         <p className="mt-2 text-sm text-content-secondary">
           Two legs locked. Settlement proofs post hourly against the vault — recompute them any time
           from program accounts.
@@ -501,14 +505,14 @@ const SummaryPanel = memo(function SummaryPanel({
   if (phase !== "PARLEY_READY") {
     return (
       <div className="flex flex-1 flex-col justify-center">
-        <p className="text-sm text-content-faint">
+        <p className="text-sm text-content-tertiary">
           Complete legs one and two, then set the ticket notional in the configuration panel —
           correlation, combined carry and margin bounds follow.
         </p>
         <div aria-hidden="true" className="mt-4 space-y-2">
-          <div className="h-3 w-3/4 rounded bg-surface-raised" />
-          <div className="h-3 w-1/2 rounded bg-surface-raised" />
-          <div className="h-3 w-2/3 rounded bg-surface-raised" />
+          <div className="h-3 w-3/4 rounded bg-surface-raise" />
+          <div className="h-3 w-1/2 rounded bg-surface-raise" />
+          <div className="h-3 w-2/3 rounded bg-surface-raise" />
         </div>
       </div>
     )
@@ -518,36 +522,36 @@ const SummaryPanel = memo(function SummaryPanel({
     <div className="flex flex-1 flex-col">
       <p className="font-mono text-xs text-content-secondary">{legs}</p>
       <div className="mt-3 flex items-end gap-3">
-        <Metric className="!text-brand-green">{combinedApr.toFixed(1)}%</Metric>
-        <span className="pb-1.5 font-mono text-[11px] text-content-faint">
+        <Metric className="!text-content-accent">{combinedApr.toFixed(1)}%</Metric>
+        <span className="pb-1.5 font-mono text-[11px] text-content-tertiary">
           combined APR · +0.8% parley kicker
         </span>
       </div>
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-xs">
-        <div className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
-          <dt className="text-content-faint">ρ legs</dt>
+        <div className="flex justify-between gap-2 border-b border-stroke-secondary/60 pb-1">
+          <dt className="text-content-tertiary">ρ legs</dt>
           <dd className="text-content-secondary">{correlation.toFixed(2)}</dd>
         </div>
-        <div className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
-          <dt className="text-content-faint">Vault fee</dt>
+        <div className="flex justify-between gap-2 border-b border-stroke-secondary/60 pb-1">
+          <dt className="text-content-tertiary">Vault fee</dt>
           <dd className="text-content-secondary">15 bps</dd>
         </div>
-        <div className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
-          <dt className="text-content-faint">Settlement</dt>
+        <div className="flex justify-between gap-2 border-b border-stroke-secondary/60 pb-1">
+          <dt className="text-content-tertiary">Settlement</dt>
           <dd className="text-content-secondary">Hourly</dd>
         </div>
-        <div className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
-          <dt className="text-content-faint">Margin</dt>
+        <div className="flex justify-between gap-2 border-b border-stroke-secondary/60 pb-1">
+          <dt className="text-content-tertiary">Margin</dt>
           <dd className="text-content-secondary">Pre-cleared</dd>
         </div>
-        <div className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
-          <dt className="text-content-faint">Notional</dt>
+        <div className="flex justify-between gap-2 border-b border-stroke-secondary/60 pb-1">
+          <dt className="text-content-tertiary">Notional</dt>
           <dd className="text-content-secondary">
             {notionalUsd !== null ? formatCompactUsd(notionalUsd) : "—"}
           </dd>
         </div>
-        <div className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
-          <dt className="text-content-faint">Utilization</dt>
+        <div className="flex justify-between gap-2 border-b border-stroke-secondary/60 pb-1">
+          <dt className="text-content-tertiary">Utilization</dt>
           <dd className="text-content-secondary">
             {utilizationPct !== null ? `${utilizationPct.toFixed(0)}% of bound` : "—"}
           </dd>
@@ -557,14 +561,14 @@ const SummaryPanel = memo(function SummaryPanel({
       <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
         <Dialog.Trigger
           data-pulse={phase === "PARLEY_READY"}
-          className="mt-5 inline-flex min-h-11 items-center justify-center rounded-tremor-default bg-brand-green px-5 text-sm font-semibold text-surface-inset transition-colors hover:bg-brand-green-emphasis"
+          className="mt-5 inline-flex min-h-11 items-center justify-center rounded-tremor-default bg-surface-accent-inverse px-5 text-mono-sm text-content-inverse transition-colors hover:bg-surface-accent-inverse-hover"
         >
           Confirm parametric order
         </Dialog.Trigger>
         <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/70" />
-          <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-tremor-default border border-stroke-dim bg-surface-base p-6 shadow-tremor-dropdown">
-            <Dialog.Title className="text-lg font-semibold text-content-primary">
+          <Dialog.Backdrop className="fixed inset-0 z-50 bg-surface-scrim" />
+          <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-tremor-default border border-stroke-default bg-surface-raise p-6 shadow-menu">
+            <Dialog.Title className="text-lg font-medium text-content-default">
               Route parametric order
             </Dialog.Title>
             <Dialog.Description className="mt-2 text-sm text-content-secondary">
@@ -572,7 +576,7 @@ const SummaryPanel = memo(function SummaryPanel({
               margin engine will pre-clear both legs before the next slot.
             </Dialog.Description>
             <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <Dialog.Close className="inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-strong px-4 text-sm text-content-secondary transition-colors hover:text-content-primary">
+              <Dialog.Close className="inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-raise px-4 text-sm text-content-secondary transition-colors hover:text-content-default">
                 Back
               </Dialog.Close>
               <button
@@ -581,7 +585,7 @@ const SummaryPanel = memo(function SummaryPanel({
                   onRoute()
                   setDialogOpen(false)
                 }}
-                className="inline-flex min-h-11 items-center rounded-tremor-default bg-brand-green px-5 text-sm font-semibold text-surface-inset transition-colors hover:bg-brand-green-emphasis"
+                className="inline-flex min-h-11 items-center rounded-tremor-default bg-surface-accent-inverse px-5 text-mono-sm text-content-inverse transition-colors hover:bg-surface-accent-inverse-hover"
               >
                 Route order
               </button>
@@ -667,7 +671,7 @@ export function OrderFlowBuilder() {
   const ticketBasis = orderData.summary?.basis === "ticket" ? orderData.summary : null
 
   return (
-    <div className="rounded-tremor-default border border-stroke-dim bg-surface-inset/40 p-4 sm:p-6">
+    <div className="rounded-tremor-default border border-stroke-default bg-surface-secondary/40 p-4 sm:p-6">
       <ol className="grid list-none gap-4 p-0 lg:grid-cols-[1fr_1.5rem_1fr_1.5rem_1fr] lg:items-stretch lg:gap-0">
         <FlowNode step="01" title="Primary trade" status={nodeAStatus}>
           <p className="mb-4 text-sm text-content-secondary">
@@ -678,7 +682,7 @@ export function OrderFlowBuilder() {
             onSelect={(id, label) => handleNodeSelect("tradeA", { id, label })}
           />
           {tradeA && (
-            <p className="mt-4 font-mono text-[11px] text-content-faint">
+            <p className="mt-4 font-mono text-[11px] text-content-tertiary">
               venue {tradeA.venue} · max notional ${(tradeA.maxNotionalUsd / 1_000_000).toFixed(1)}M
               · {RISK_LABELS[tradeA.risk]} risk
             </p>
@@ -717,14 +721,14 @@ export function OrderFlowBuilder() {
             ) : (
               <p
                 aria-live="polite"
-                className="rounded-tremor-default border border-dashed border-stroke-dim p-4 text-sm text-content-faint"
+                className="rounded-tremor-default border border-dashed border-stroke-default p-4 text-sm text-content-tertiary"
               >
                 Awaiting primary trade…
               </p>
             )}
           </RadioGroup>
           {state.phase === "INVALID_PAIR" && state.invalidReason && (
-            <p role="alert" className="mt-3 text-xs leading-relaxed text-brand-coral">
+            <p role="alert" className="mt-3 text-xs leading-relaxed text-content-error">
               {state.invalidReason}
             </p>
           )}
@@ -747,7 +751,7 @@ export function OrderFlowBuilder() {
             <button
               type="button"
               onClick={reset}
-              className="mt-5 inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-strong px-4 font-mono text-sm text-content-secondary transition-colors hover:border-brand-green hover:text-brand-green"
+              className="mt-5 inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-raise px-4 font-mono text-sm text-content-secondary transition-colors hover:border-stroke-accent-secondary hover:text-content-default"
             >
               Build another parley ↺
             </button>

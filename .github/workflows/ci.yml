@@ -29,6 +29,13 @@ jobs:
         with:
           node-version: 22
 
+      - name: Compute GitHub Pages coordinates
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          echo "OWNER=$OWNER" >> "$GITHUB_ENV"
+          echo "REPO=$REPO" >> "$GITHUB_ENV"
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -38,11 +45,11 @@ jobs:
       - name: Typecheck — no escape hatches
         run: bun run typecheck
 
-      - name: Static export build
-        run: bun run build
+      - name: Static export build (GitHub Pages coordinates)
+        run: bun run build:pages
 
       - name: Verify compiled artifacts
-        run: node scripts/verify-artifacts.mjs --root out
+        run: node scripts/verify-artifacts.mjs --root out --base /$REPO --site-url https://${OWNER}.github.io/${REPO}
 
-      - name: Smoke tests
-        run: node scripts/smoke.mjs --root out
+      - name: Smoke tests (subpath mount, Pages routing)
+        run: node scripts/smoke.mjs --root out --mount /$REPO --site-url https://${OWNER}.github.io/${REPO}
