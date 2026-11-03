@@ -1,0 +1,87 @@
+name: Deploy to Cloudflare Pages
+
+# Ships the static export to Cloudflare Pages via Wrangler direct upload —
+# again only after every quality gate passes. The build runs WITHOUT a base
+# path (Cloudflare Pages serves at the domain root) and with the pages.dev
+# canonical origin.
+#
+# Required repository secrets:
+#   CLOUDFLARE_API_TOKEN  — token with "Cloudflare Pages — Edit" permission
+#   CLOUDFLARE_ACCOUNT_ID — the target Cloudflare account id
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-pages
+  cancel-in-progress: true
+
+env:
+  # Canonical origin used for <link rel=canonical>, OG URLs and sitemap.xml.
+  # Replace with your custom domain when one is attached to the Pages project.
+  NEXT_PUBLIC_SITE_URL: https://fame-protocol.pages.dev
+
+jobs:
+  deploy:
+    name: Gates → static export → verify → smoke → wrangler deploy
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.wrangler.outputs.alias || steps.wrangler.outputs.url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Set up Node (verification scripts)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint — ESLint + Biome, strict
+        run: bun run lint
+
+      - name: Typecheck — no escape hatches
+        run: bun run typecheck
+
+      - name: Static export build (domain root)
+        env:
+          STATIC_EXPORT: "1"
+        run: bun run build
+
+      - name: Verify compiled artifacts
+        run: node scripts/verify-artifacts.mjs --root out --site-url "$NEXT_PUBLIC_SITE_URL"
+
+      - name: Smoke tests (Pages routing)
+        run: node scripts/smoke.mjs --root out --site-url "$NEXT_PUBLIC_SITE_URL"
+
+      - name: Deploy to Cloudflare Pages
+        id: wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy out --project-name=fame-protocol --branch main
+
+  post-deploy-smoke:
+    name: Post-deploy smoke (live URL)
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out verification scripts
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Smoke the live deployment
+        run: node scripts/smoke.mjs --url "${{ needs.deploy.outputs.url }}" --retries 10 --retry-delay-ms 15000

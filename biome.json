@@ -5,6 +5,7 @@
                         "src/app/**",
                         "src/lib/**",
                         "src/components/**",
+                        "scripts/**",
                         "!src/components/ui/**",
                         "!src/app/globals.css"
                 ]

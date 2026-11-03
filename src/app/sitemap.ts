@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next"
 import { SITE } from "@/lib/seo"
 
+// Required for `output: "export"` — the sitemap route is pre-rendered at build.
+export const dynamic = "force-static"
+
 const ARTICLE_FRAGMENTS = [
   "journal/liquidity-ratios-emission-caps",
   "journal/formal-verification-defi-safety",
@@ -10,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()
   return [
     {
-      url: SITE.url,
+      url: `${SITE.url}/`,
       lastModified,
       changeFrequency: "weekly",
       priority: 1,

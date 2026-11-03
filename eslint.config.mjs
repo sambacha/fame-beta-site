@@ -1,5 +1,6 @@
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals"
 import nextTypescript from "eslint-config-next/typescript"
+import globals from "globals"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
 
@@ -47,6 +48,15 @@ const eslintConfig = [
     },
   },
   {
+    // Deployment/verification tooling — same strict bar as first-party app code.
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: "module",
+      globals: { ...globals.node },
+    },
+  },
+  {
     // Scaffold-shipped primitives (shadcn/ui + hooks) — relax the React
     // Compiler-era rules that third-party skeleton code trips on; strict
     // enforcement applies to all first-party code above.
@@ -64,12 +74,9 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
-      "examples/**",
       "skills/**",
-      "scripts/**",
       "download/**",
       "upload/**",
-      "tests/**",
     ],
   },
 ]

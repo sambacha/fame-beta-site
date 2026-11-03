@@ -6,7 +6,7 @@ import { Nav } from "@/components/nav"
 import { PersonaProvider } from "@/components/persona-context"
 import { Toaster } from "@/components/ui/toaster"
 import { ARTICLES } from "@/lib/blog-content"
-import { buildArticleLd, buildLdGraph, SITE } from "@/lib/seo"
+import { buildArticleLd, buildLdGraph, SITE, withBasePath } from "@/lib/seo"
 
 // display=swap + size-adjusted fallback metrics (automatic in next/font)
 // keep the font swap from shifting layout — the two workhorses of CLS control.
@@ -63,7 +63,9 @@ export const metadata: Metadata = {
     description: SITE.tagline,
     images: [SITE.ogImage],
   },
-  icons: { icon: "/logo.svg" },
+  // Next does not base-path-prefix metadata icon hrefs on project-site hosting;
+  // withBasePath keeps the favicon resolvable under /<repo>/ subpaths too.
+  icons: { icon: withBasePath("/logo.svg") },
 }
 
 export const viewport: Viewport = {

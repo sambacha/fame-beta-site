@@ -1,0 +1,7 @@
+{
+  // Cloudflare Pages project configuration (used by `wrangler pages deploy`).
+  // The GitHub Actions workflow .github/workflows/deploy-cloudflare.yml deploys
+  // the pre-verified `out/` directory with this project name.
+  "name": "fame-protocol",
+  "pages_build_output_dir": "out"
+}

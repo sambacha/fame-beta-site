@@ -1,0 +1,7 @@
+# FAME Protocol — Cloudflare Pages redirects.
+# Pretty aliases for the deep anchors on the single-page surface.
+# GitHub Pages ignores this file; both hosts already serve /path → /path/ → index.html.
+
+/order-builder    /#build   302
+/request-access   /#access  302
+/research         /#research 302

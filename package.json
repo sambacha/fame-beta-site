@@ -1,19 +1,18 @@
 {
-  "name": "nextjs_tailwind_shadcn_ts",
-  "version": "0.2.1",
+  "name": "fame-protocol-landing",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
-    "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
-    "lint": "eslint . && biome check src/app src/lib src/components",
-    "lint:fix": "eslint . --fix && biome check --write src/app src/lib src/components",
-    "lint:biome": "biome check src/app src/lib src/components",
-    "format": "biome format --write src/app src/lib src/components",
-    "db:push": "prisma db push --accept-data-loss",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset"
+    "lint": "eslint . && biome check src scripts",
+    "lint:fix": "eslint . --fix && biome check --write src scripts",
+    "typecheck": "tsc --noEmit",
+    "format": "biome format --write src scripts",
+    "build": "STATIC_EXPORT=1 next build && rm -rf out && mv .next-export out && find out -name '*.map' -delete",
+    "start": "node scripts/serve.mjs out",
+    "verify:artifacts": "node scripts/verify-artifacts.mjs --root out",
+    "test:smoke": "node scripts/smoke.mjs --root out",
+    "test": "bun run verify:artifacts && bun run test:smoke"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-rc.0",
@@ -93,6 +92,7 @@
     "bun-types": "^1.3.4",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
+    "globals": "^17.14.0",
     "jsdom": "^30.1.3",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",

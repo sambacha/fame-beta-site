@@ -1,0 +1,321 @@
+#!/usr/bin/env node
+/**
+ * Compiled-artifact verification — the pre-deployment gate.
+ *
+ * Validates the static export in `out/` before anything is allowed to ship:
+ *   1. Structure   — every file the two hosts expect is present; no junk ships.
+ *   2. Budgets     — gzip-weighted size ceilings (calibrated; see docs/DEPLOYMENT.md).
+ *   3. Integrity   — security/SEO surface of the HTML (JSON-LD, OG, canonical,
+ *                    a11y markers), basePath correctness, headers/redirects.
+ *   4. Manifest    — out/build-manifest.json with SHA-256 + sizes for audit.
+ *
+ * Exit code 1 = deployment must not proceed. CI runs this before both
+ * GitHub Pages and Cloudflare Pages deploys.
+ */
+import { createHash } from "node:crypto"
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { extname, join, relative, resolve } from "node:path"
+import { gzipSync } from "node:zlib"
+
+/* ── CLI ──────────────────────────────────────────────────────────────────── */
+const args = process.argv.slice(2)
+const readFlag = (name, fallback) => {
+  const index = args.indexOf(`--${name}`)
+  return index >= 0 && args[index + 1] ? args[index + 1] : fallback
+}
+const ROOT = resolve(readFlag("root", "out"))
+const BASE_PATH = readFlag("base", "").replace(/\/+$/, "")
+const SITE_URL = readFlag("site-url", "").replace(/\/+$/, "")
+
+/* ── Budgets (gzip bytes). Calibrated against the 1.0.0 build (measured:
+      total 893 KB gz · js 428 KB gz · css 24 KB gz · index.html 14 KB gz)
+      with ~25-30% headroom. Tighten or loosen only with a documented reason
+      in docs/DEPLOYMENT.md. ── */
+const BUDGETS = {
+  totalGzip: 1_200_000,
+  jsTotalGzip: 550_000,
+  jsSingleGzip: 220_000,
+  cssTotalGzip: 40_000,
+  htmlSingleGzip: 40_000,
+}
+
+/* ── Harness ──────────────────────────────────────────────────────────────── */
+const failures = []
+const notes = []
+const check = (name, ok, detail = "") => {
+  if (!ok) failures.push(`${name}${detail ? ` — ${detail}` : ""}`)
+}
+const note = (line) => notes.push(line)
+
+if (!existsSync(ROOT)) {
+  console.error(`[verify] Artifact root not found: ${ROOT} — run \`bun run build\` first.`)
+  process.exit(1)
+}
+
+const walk = (dir) =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name)
+    return entry.isDirectory() ? walk(full) : [full]
+  })
+
+const allFiles = walk(ROOT)
+const rel = (file) => relative(ROOT, file).split("\\").join("/")
+const read = (file) => readFileSync(file)
+const gzipSize = (file) => gzipSync(read(file)).length
+
+/* ── 1. Structure ─────────────────────────────────────────────────────────── */
+const REQUIRED = [
+  "index.html",
+  "404.html",
+  ".nojekyll",
+  "_headers",
+  "_redirects",
+  "robots.txt",
+  "sitemap.xml",
+  "og-image.png",
+  "logo.svg",
+]
+for (const file of REQUIRED) {
+  check(`required file present: ${file}`, existsSync(join(ROOT, file)))
+}
+
+const FORBIDDEN_PATTERNS = [/\.map$/, /\.md$/i, /(^|\/)(db|prisma)(\/|$)/i, /\.DS_Store$/]
+for (const file of allFiles) {
+  const path = rel(file)
+  for (const pattern of FORBIDDEN_PATTERNS) {
+    check(`no forbidden artifact: ${path}`, !pattern.test(path))
+  }
+}
+
+/* ── 2. Budgets ───────────────────────────────────────────────────────────── */
+let totalGzip = 0
+let jsTotalGzip = 0
+let cssTotalGzip = 0
+const manifestFiles = []
+for (const file of allFiles) {
+  const raw = read(file)
+  const gz = gzipSync(raw).length
+  totalGzip += gz
+  const path = rel(file)
+  if (extname(file) === ".js") jsTotalGzip += gz
+  if (extname(file) === ".css") cssTotalGzip += gz
+  manifestFiles.push({
+    path,
+    bytes: raw.length,
+    gzipBytes: gz,
+    sha256: createHash("sha256").update(raw).digest("hex"),
+  })
+}
+
+check(
+  `total gzip ${totalGzip} ≤ ${BUDGETS.totalGzip}`,
+  totalGzip <= BUDGETS.totalGzip,
+  "artifact tree exceeded the deployment budget",
+)
+check(`js gzip total ${jsTotalGzip} ≤ ${BUDGETS.jsTotalGzip}`, jsTotalGzip <= BUDGETS.jsTotalGzip)
+check(
+  `css gzip total ${cssTotalGzip} ≤ ${BUDGETS.cssTotalGzip}`,
+  cssTotalGzip <= BUDGETS.cssTotalGzip,
+)
+
+for (const file of allFiles) {
+  if (extname(file) === ".js") {
+    const gz = gzipSize(file)
+    check(`js single gzip ${rel(file)} ${gz} ≤ ${BUDGETS.jsSingleGzip}`, gz <= BUDGETS.jsSingleGzip)
+  }
+  if (extname(file) === ".html") {
+    const gz = gzipSize(file)
+    check(`html gzip ${rel(file)} ${gz} ≤ ${BUDGETS.htmlSingleGzip}`, gz <= BUDGETS.htmlSingleGzip)
+  }
+}
+note(`measured: total=${totalGzip}B gz · js=${jsTotalGzip}B gz · css=${cssTotalGzip}B gz`)
+
+/* ── 3. Integrity — index.html ────────────────────────────────────────────── */
+const indexHtml = read(join(ROOT, "index.html")).toString("utf8")
+
+check("index.html has doctype", indexHtml.trimStart().toLowerCase().startsWith("<!doctype html"))
+check('index.html declares lang="en"', /<html[^>]*\slang="en"/.test(indexHtml))
+check(
+  "index.html has a title mentioning FAME Protocol",
+  /<title>[^<]*FAME Protocol/.test(indexHtml),
+)
+check("index.html has meta description", /<meta\s+name="description"/.test(indexHtml))
+check("index.html has viewport meta", /<meta\s+name="viewport"/.test(indexHtml))
+
+for (const tag of ["og:title", "og:description", "og:image", "og:url", "twitter:card"]) {
+  check(
+    `index.html has ${tag}`,
+    indexHtml.includes(`property="${tag}"`) || indexHtml.includes(`name="${tag}"`),
+  )
+}
+
+const canonicalMatch = indexHtml.match(/<link\s+rel="canonical"\s+href="([^"]+)"/)
+check("index.html has canonical link", Boolean(canonicalMatch))
+// Next normalizes a root-level canonical to the bare origin; subpath builds
+// keep the trailing slash — both forms are accepted.
+const canonicalOk = (canonical) => canonical === SITE_URL || canonical === `${SITE_URL}/`
+if (canonicalMatch && SITE_URL) {
+  check(`canonical is ${SITE_URL}(/)`, canonicalOk(canonicalMatch[1]), `found ${canonicalMatch[1]}`)
+}
+
+const jsonLdBlocks = [
+  ...indexHtml.matchAll(/<script\s+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g),
+]
+check("index.html has JSON-LD", jsonLdBlocks.length > 0)
+let ldTypes = []
+for (const block of jsonLdBlocks) {
+  try {
+    const parsed = JSON.parse(block[1])
+    const graph = Array.isArray(parsed["@graph"]) ? parsed["@graph"] : [parsed]
+    ldTypes = ldTypes.concat(graph.map((node) => node["@type"]).filter(Boolean))
+  } catch {
+    check("JSON-LD parses as JSON", false)
+  }
+}
+for (const type of ["Organization", "WebSite", "SoftwareApplication", "BlogPosting"]) {
+  check(`JSON-LD contains ${type}`, ldTypes.includes(type), `types: ${ldTypes.join(", ")}`)
+}
+
+/* A11y + UX markers that must survive the build. */
+check('index.html has <main id="main">', /<main[^>]*id="main"/.test(indexHtml))
+check("index.html has an <h1>", /<h1[\s>]/.test(indexHtml))
+check("index.html has a polite aria-live region", /aria-live="polite"/.test(indexHtml))
+check("index.html has Request Access CTA copy", /REQUEST ACCESS/i.test(indexHtml))
+check(
+  "index.html has order-flow boundary marker",
+  indexHtml.includes('data-boundary="parametric-order-flow"'),
+)
+// The order-flow builder mounts client-side (in-view dynamic import, ssr:false),
+// so the artifact-level guarantees are the static section shell markers.
+check(
+  "index.html keeps the Parametric Order Flow section shell",
+  /PARAMETRIC ORDER FLOW/.test(indexHtml) && /id="build"/.test(indexHtml),
+)
+check(
+  "index.html keeps the simulated-environment disclaimer",
+  /Simulated environment/.test(indexHtml),
+)
+
+/* Leak + placeholder scan. */
+check("index.html has no localhost leak", !indexHtml.includes("localhost"))
+check(
+  "index.html has no insecure http:// refs",
+  !/src="http:\/\//.test(indexHtml) && !/href="http:\/\//.test(indexHtml),
+)
+check("index.html has no {{placeholder}} leftovers", !indexHtml.includes("{{"))
+for (const marker of ["TODO", "FIXME", "XXX"]) {
+  check(`index.html has no ${marker} marker`, !indexHtml.includes(marker))
+}
+check("index.html has no rendered `undefined` text", !indexHtml.includes(">undefined<"))
+
+/* ── 3b. Integrity — basePath mode ────────────────────────────────────────── */
+const collectRefs = (html) =>
+  [...html.matchAll(/(?:src|href)="([^"]+)"/g)]
+    .map((match) => match[1])
+    .filter((ref) => ref.startsWith("/"))
+
+if (BASE_PATH) {
+  const html404 = read(join(ROOT, "404.html")).toString("utf8")
+  // Next rewrites "/#hash" links to "<base>#hash" under basePath — that form
+  // (plus "?query") is valid alongside "<base>" and "<base>/…".
+  const isBaseScoped = (ref) =>
+    ref === BASE_PATH ||
+    ref.startsWith(`${BASE_PATH}/`) ||
+    ref.startsWith(`${BASE_PATH}#`) ||
+    ref.startsWith(`${BASE_PATH}?`)
+  for (const [name, html] of [
+    ["index.html", indexHtml],
+    ["404.html", html404],
+  ]) {
+    for (const ref of collectRefs(html)) {
+      check(`${name} ref ${ref} starts with basePath ${BASE_PATH}`, isBaseScoped(ref))
+    }
+  }
+}
+
+/* ── 3c. Integrity — support files ────────────────────────────────────────── */
+const headersFile = read(join(ROOT, "_headers")).toString("utf8")
+check("_headers sets Content-Security-Policy", headersFile.includes("Content-Security-Policy"))
+check("_headers sets nosniff", headersFile.includes("X-Content-Type-Options: nosniff"))
+check(
+  "_headers caches /_next/static immutably",
+  headersFile.includes("/_next/static/*") && headersFile.includes("immutable"),
+)
+
+const redirectsFile = read(join(ROOT, "_redirects")).toString("utf8")
+check("_redirects is non-empty", redirectsFile.trim().length > 0)
+
+const png = read(join(ROOT, "og-image.png"))
+check(
+  "og-image.png is a real PNG > 20KB",
+  png.subarray(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47])) && png.length > 20_000,
+  `${png.length} bytes`,
+)
+check("logo.svg is an SVG", read(join(ROOT, "logo.svg")).toString("utf8").includes("<svg"))
+
+const html404Content = read(join(ROOT, "404.html")).toString("utf8")
+check("404.html is the branded page", html404Content.includes("SLOT NOT FOUND"))
+
+const robots = read(join(ROOT, "robots.txt")).toString("utf8")
+check(
+  "robots.txt allows all agents",
+  /user-agent:\s*\*/i.test(robots) && /allow:\s*\//i.test(robots),
+)
+check("robots.txt points at the sitemap", robots.includes("Sitemap:"))
+
+/* ── 3d. Sitemap ──────────────────────────────────────────────────────────── */
+const sitemap = read(join(ROOT, "sitemap.xml")).toString("utf8")
+const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
+check("sitemap has ≥ 3 URLs", locs.length >= 3, `found ${locs.length}`)
+for (const loc of locs) {
+  check(`sitemap URL is https: ${loc}`, loc.startsWith("https://"))
+  if (SITE_URL) {
+    check(
+      `sitemap URL on canonical origin: ${loc}`,
+      loc.startsWith(`${SITE_URL}/`) || loc === SITE_URL,
+    )
+  }
+  const url = new URL(loc)
+  if (url.hash) continue // anchored entries resolve against the home document
+  // Strip the deployment base path — subpath hosting maps it to the artifact root.
+  let path = url.pathname
+  if (BASE_PATH && (path === BASE_PATH || path.startsWith(`${BASE_PATH}/`))) {
+    path = path.slice(BASE_PATH.length) || "/"
+  }
+  const target = join(ROOT, path, "index.html")
+  const flat = join(ROOT, `${path.replace(/\/+$/, "")}.html`)
+  check(`sitemap URL resolves in artifact: ${path}`, existsSync(target) || existsSync(flat))
+}
+
+/* ── 4. Manifest ──────────────────────────────────────────────────────────── */
+writeFileSync(
+  join(ROOT, "build-manifest.json"),
+  `${JSON.stringify(
+    {
+      generatedAt: new Date().toISOString(),
+      gitSha: process.env.GIT_SHA ?? null,
+      basePath: BASE_PATH || null,
+      siteUrl: SITE_URL || null,
+      budgets: BUDGETS,
+      measured: { totalGzip, jsTotalGzip, cssTotalGzip, files: manifestFiles.length },
+      files: manifestFiles.sort((a, b) => a.path.localeCompare(b.path)),
+    },
+    null,
+    2,
+  )}\n`,
+)
+note(`manifest written: ${join(ROOT, "build-manifest.json")} (${manifestFiles.length} files)`)
+
+/* ── Report ───────────────────────────────────────────────────────────────── */
+console.info(
+  `[verify] root=${ROOT}${BASE_PATH ? ` base=${BASE_PATH}` : ""}${SITE_URL ? ` site=${SITE_URL}` : ""}`,
+)
+for (const line of notes) console.info(`[verify] ${line}`)
+if (failures.length > 0) {
+  console.error(`[verify] FAILED — ${failures.length} issue(s):`)
+  for (const failure of failures) console.error(`  ✗ ${failure}`)
+  process.exit(1)
+}
+console.info(
+  `[verify] PASSED — ${manifestFiles.length} files, ${(totalGzip / 1024).toFixed(1)} KB gzipped total`,
+)

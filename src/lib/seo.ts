@@ -2,15 +2,27 @@
  * Central SEO constants + JSON-LD builders (schema.org @graph).
  * Organization and SoftwareApplication live in the root layout;
  * BlogPosting entries are injected alongside them for the two journal pieces.
+ *
+ * Deployment-awareness: NEXT_PUBLIC_SITE_URL sets the canonical origin at
+ * build time (GitHub Pages project site vs. Cloudflare Pages root), and
+ * NEXT_PUBLIC_BASE_PATH prefixes public-file paths so OG images resolve
+ * under https://<owner>.github.io/<repo>/ subpath hosting.
  */
+
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+
+/** Prefix a public-file path with the deployment base path (no-op at domain root). */
+export function withBasePath(path: string): string {
+  return `${BASE_PATH}${path}`
+}
 
 export const SITE = {
   name: "FAME Protocol",
-  url: "https://fame-protocol.example",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://fairmeme3.github.io/fame-program",
   tagline: "One curve. No insiders.",
   description:
     "FAME Protocol is formally verified parametric parlay infrastructure: two-leg structured trades with on-chain liquidity ratios, a hard emission cap and slot-level settlement proofs.",
-  ogImage: "/og-image.png",
+  ogImage: withBasePath("/og-image.png"),
   repo: "https://github.com/Fairmeme3/fame-program",
 } as const
 
