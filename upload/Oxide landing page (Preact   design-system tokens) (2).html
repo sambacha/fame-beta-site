@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0f11">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="The cloud you own. Hardware, with the software baked in, for running infrastructure at scale.">
+<title>Oxide Computer Company (design-system recreation)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='13' font-size='14'%3E%F0%9F%9F%A2%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Metric-matched fallback so the swap from Arial to Inter barely moves layout */
+@font-face{font-family:"Inter Fallback";src:local("Arial");size-adjust:107.4%;ascent-override:90.2%;descent-override:22.5%;line-gap-override:0%}
+*,::before,::after{box-sizing:border-box;margin:0}
+:root{
+ color-scheme:dark;
+ /* Oxide design-system OKLCH tokens (design.md) */
+ --n0:oklch(.162 .01 260);--n100:oklch(.2 .008 260);--n200:oklch(.25 .007 260);--n300:oklch(.316 .006 260);
+ --n500:oklch(.5 .004 260);--n700:oklch(.68 .002 260);--n800:oklch(.79 .0011 260);--n1300:oklch(.995 .0001 260);
+ --g8:oklch(.77 .1919 163.7);--r8:oklch(.712 .185 11.3);--y8:oklch(.837 .14 75);--b8:oklch(.71 .15 272);
+ /* semantic layers: surface / content / stroke */
+ --bg:var(--n0);--raise:var(--n100);--hover:var(--n200);--line:var(--n300);
+ --t:var(--n800);--t2:var(--n700);--t3:var(--n500);--tr:var(--n1300);--ac:var(--g8);
+ --sans:"Inter","Inter Fallback",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+ --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{background:var(--bg);scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px);scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
+body{background:var(--bg);color:var(--t);font:400 14px/1.55 var(--sans);min-height:100vh;min-height:100dvh;overflow-x:clip;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:60}
+a{color:inherit;text-decoration:none;touch-action:manipulation}
+:focus-visible{outline:2px solid oklch(.77 .1919 163.7/.55);outline-offset:0}
+.w{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono,.btn,.badge,.tab{font:500 12px/1.2 var(--mono);text-transform:uppercase;letter-spacing:.04em}
+.t2{color:var(--t2)}.t3{color:var(--t3)}.ac{color:var(--ac)}
+h1,h2,h3{font-weight:400;color:var(--tr)}
+h1{font-size:36px;line-height:1.05;letter-spacing:-.025em}
+h2{font-size:25px;line-height:1.15;letter-spacing:-.02em}
+h3{font-size:18px;line-height:1.3;letter-spacing:-.005em}
+@media(min-width:800px){h1{font-size:52px}}
+@media(min-width:1000px){h1{font-size:65px}h2{font-size:36px}}
+@media(min-width:600px){h2{font-size:32px}}
+/* Header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--bg);border-bottom:1px solid var(--line)}
+@supports(backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px)){header{background:oklch(.162 .01 260/.82);-webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px)}}
+.bar{display:flex;align-items:center;justify-content:space-between;height:56px;gap:16px}
+.logo{font:500 16px var(--mono);letter-spacing:.08em;color:var(--tr);text-transform:uppercase;padding:12px 0}
+nav.d{display:none;gap:4px}
+nav.d a{padding:10px 12px;color:var(--t2)}
+.actions{display:none;gap:8px}
+.burger{width:44px;height:44px;display:grid;place-items:center;background:none;border:0;color:var(--tr);cursor:pointer;touch-action:manipulation}
+.sheet{position:fixed;inset:calc(56px + env(safe-area-inset-top,0px)) 0 0;background:var(--bg);z-index:49;padding:16px max(16px,env(safe-area-inset-left,0px)) calc(24px + env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;transform:translate3d(0,-8px,0);opacity:0;visibility:hidden;transition:transform .2s ease-out,opacity .2s ease-out,visibility 0s .2s}
+.sheet.on{transform:none;opacity:1;visibility:visible;transition-delay:0s}
+.sheet a.l{display:flex;align-items:center;min-height:52px;font-size:25px;color:var(--tr);border-bottom:1px solid var(--line);letter-spacing:-.02em}
+.sheet .row{display:flex;gap:8px;margin-top:24px;flex-wrap:wrap}
+@media(min-width:900px){nav.d,.actions{display:flex}.burger,.sheet{display:none}}
+/* Button / Badge */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:0;border-radius:2px;color:var(--t);background:var(--raise);box-shadow:0 0 0 1px var(--line);cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-appearance:none;appearance:none;transition:transform .12s ease,background-color .15s ease}
+.btn::after{content:"";position:absolute;inset:-2px 0}
+.btn.sm{height:32px}.btn.sm::after{inset:-6px 0}
+.btn.primary{background:var(--ac);color:var(--n0);box-shadow:none}
+.btn:active{transform:scale(.97)}
+.btn[aria-disabled=true]{opacity:.55;pointer-events:none;cursor:not-allowed}
+@media(hover:hover) and (pointer:fine){.btn:hover{background:var(--hover)}.btn.primary:hover{background:oklch(.82 .1919 163.7)}nav.d a:hover{color:var(--tr)}.card.lk:hover{background:var(--hover)}}
+.badge{display:inline-flex;align-items:center;height:16px;padding:0 6px;border-radius:2px;color:var(--ac);box-shadow:inset 0 0 0 1px oklch(.77 .1919 163.7/.3);font-size:11px;white-space:nowrap}
+.badge.neutral{color:var(--t2);box-shadow:inset 0 0 0 1px var(--line)}
+.badge.error{color:var(--r8);box-shadow:inset 0 0 0 1px oklch(.712 .185 11.3/.35)}
+.spin{width:12px;height:12px;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* Sections / cards */
+.sec{padding:56px 0;border-top:1px solid var(--line);content-visibility:auto;contain-intrinsic-size:auto 720px}
+@media(min-width:800px){.sec{padding:96px 0}}
+.eyebrow{display:block;margin-bottom:16px;color:var(--t3)}
+.lead{color:var(--t2);font-size:16px;max-width:60ch;margin-top:16px}
+.g{display:grid;gap:12px;margin-top:40px}
+@media(min-width:700px){.g.c2,.g.c3,.g.c4{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1000px){.g.c3{grid-template-columns:repeat(3,1fr)}.g.c4{grid-template-columns:repeat(4,1fr)}}
+.card{display:block;background:var(--raise);border-radius:4px;box-shadow:0 0 0 1px var(--line);padding:20px;min-height:100%;transition:background-color .15s ease}
+.card h3{margin-bottom:8px}.card p,.card li{color:var(--t2)}
+.card ul{list-style:none;padding:0;margin-top:16px;display:grid;gap:8px}
+.card li::before{content:"└─ ";font-family:var(--mono);color:var(--t3)}
+.card .mono{display:block;margin-bottom:24px;color:var(--t3)}
+.err{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:16px;margin:16px 0;border-radius:4px;box-shadow:0 0 0 1px oklch(.712 .185 11.3/.35)}
+/* Hero */
+.hero{padding:40px 0 56px}
+.ascii{font:400 11px/1.15 var(--mono);color:var(--ac);opacity:.45;white-space:pre;overflow:hidden;height:calc(9 * 1.15em);margin-bottom:24px;-webkit-user-select:none;user-select:none;letter-spacing:0}
+.hero-g{display:grid;gap:32px;margin-top:40px}
+@media(min-width:900px){.hero-g{grid-template-columns:7fr 5fr;align-items:start}}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:32px}
+.tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:0}
+.tab{position:relative;padding:12px 16px;background:none;border:0;color:var(--t3);cursor:pointer;touch-action:manipulation}
+.tab.on{color:var(--ac);box-shadow:inset 0 -1px 0 var(--ac)}
+.tp{min-height:132px}
+pre.code{font:400 12px/1.7 var(--mono);color:var(--t);overflow:auto;white-space:pre;padding:16px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.rack{display:grid;gap:2px;padding:12px;background:var(--raise);border-radius:4px;box-shadow:0 0 0 1px var(--line);height:420px;grid-template-rows:repeat(14,1fr)}
+.sled{display:flex;align-items:center;gap:12px;padding:0 12px;background:var(--n0);border-radius:2px;box-shadow:inset 0 0 0 1px var(--line);color:var(--t2)}
+.led{width:6px;height:6px;border-radius:50%;background:var(--ac)}.led.y{background:var(--y8)}
+.fig{display:flex;justify-content:space-between;margin-top:8px}
+/* Logos */
+.mqw{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:20px 0}
+.mq{display:flex;gap:64px;width:max-content;animation:mq 32s linear infinite;will-change:transform}
+.mq span{font:500 16px var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+@keyframes mq{to{transform:translate3d(-50%,0,0)}}
+/* Table */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-radius:4px;box-shadow:0 0 0 1px var(--line);background:var(--raise)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
+th{text-align:left;padding:12px 16px;color:var(--t3);border-bottom:1px solid var(--line)}
+td{padding:12px 16px;border-bottom:1px solid var(--line);color:var(--t)}
+tr:last-child td{border-bottom:0}
+.tool{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+/* Form */
+.f{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}
+.f input{flex:1 1 240px;height:40px;padding:0 12px;font:400 16px var(--sans);color:var(--tr);background:var(--n0);border:0;border-radius:2px;box-shadow:inset 0 0 0 1px var(--line);-webkit-appearance:none;appearance:none}
+.f input[aria-invalid=true]{box-shadow:inset 0 0 0 1px var(--r8)}
+.msg{min-height:22px;margin-top:8px;color:var(--t2)}
+.msg.bad{color:var(--r8)}
+footer{border-top:1px solid var(--line);padding:48px 0 32px}
+.fg{display:grid;gap:32px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:800px){.fg{grid-template-columns:2fr repeat(3,1fr)}}
+.fg ul{list-style:none;padding:0;display:grid;gap:4px}
+.fg a{display:inline-block;padding:6px 0;color:var(--t2)}
+.fg .mono{display:block;margin-bottom:8px;color:var(--t3)}
+#fb{padding:48px 16px;min-height:100dvh}
+#fb p{color:var(--t2);margin-top:16px;max-width:60ch}
+noscript p{padding:16px;color:var(--t2)}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.mq,.spin{animation-duration:.01ms;animation-iteration-count:1}.sheet{transition-duration:.01ms}}
+</style>
+</head>
+<body>
+<div id="root">
+ <div id="fb" class="w">
+  <span class="logo">Oxide</span>
+  <h1 style="margin-top:24px">On-prem that feels like the public cloud</h1>
+  <p>Hardware, with the software baked in, for running infrastructure at scale. The cloud you own.</p>
+  <p id="fbmsg" class="t3">Loading…</p>
+ </div>
+</div>
+<noscript><p class="w">This page needs JavaScript for its interactive demo. Visit oxide.computer for the full site.</p></noscript>
+
+<!-- Pinned, minimal runtime: Preact 10.24.3 (≈4 KB) + hooks + htm (≈0.7 KB). No build step. -->
+<script src="https://cdn.jsdelivr.net/npm/preact@10.24.3/dist/preact.min.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/preact@10.24.3/hooks/dist/hooks.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script>
+(function(){
+'use strict';
+var root=document.getElementById('root'),msg=document.getElementById('fbmsg');
+if(!window.preact||!window.preactHooks||!window.htm){if(msg)msg.textContent='The UI runtime could not load, so you are seeing the static version. Check your connection and reload.';return}
+
+const {h,render,Component}=preact,{useState,useEffect,useRef,useCallback}=preactHooks,html=htm.bind(h);
+const cx=(...a)=>a.filter(Boolean).join(' ');
+const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+const report=(e,c)=>{try{console.error('[oxide]',c||'',e)}catch(_){}};
+addEventListener('error',ev=>report(ev.error||ev.message,'window'));
+addEventListener('unhandledrejection',ev=>report(ev.reason,'promise'));
+
+/* ---------- Standard component patterns: props in, class out, a11y built in ---------- */
+const Spinner=()=>html`<svg class="spin" viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-opacity=".3" stroke-width="1.5"/><path d="M6 1.5A4.5 4.5 0 0 1 10.5 6" stroke="currentColor" stroke-width="1.5"/></svg>`;
+const Badge=({color,children})=>html`<span class=${cx('badge',color)}>${children}</span>`;
+const Button=({variant='secondary',size,href,loading,disabled,children,...p})=>{
+  const off=loading||disabled,c=cx('btn',variant,size);
+  return href?html`<a class=${c} href=${href} aria-disabled=${off||undefined} ...${p}>${children}</a>`
+   :html`<button type="button" class=${c} aria-disabled=${off||undefined} onClick=${e=>{if(!off&&p.onClick)p.onClick(e)}} ...${p}>${loading?html`<${Spinner}/>`:null}${children}</button>`};
+const Tabs=({tabs,label})=>{
+  const[i,setI]=useState(0);
+  const key=e=>{let n=i;if(e.key==='ArrowRight')n=(i+1)%tabs.length;else if(e.key==='ArrowLeft')n=(i+tabs.length-1)%tabs.length;else return;e.preventDefault();setI(n);e.currentTarget.parentNode.children[n].focus()};
+  return html`<div><div class="tabs" role="tablist" aria-label=${label}>${tabs.map((t,n)=>html`<button role="tab" id=${'t-'+t.id} aria-selected=${n===i} aria-controls=${'p-'+t.id} tabindex=${n===i?0:-1} class=${cx('tab',n===i&&'on')} onClick=${()=>setI(n)} onKeyDown=${key}>${t.id}</button>`)}</div>
+  <div role="tabpanel" id=${'p-'+tabs[i].id} aria-labelledby=${'t-'+tabs[i].id} class="tp">${tabs[i].body}</div></div>`};
+
+/* Error boundary: one failing section never takes down the page */
+class Boundary extends Component{
+  constructor(p){super(p);this.state={e:null}}
+  componentDidCatch(e){report(e,this.props.name);this.setState({e})}
+  render({name,children},{e}){return e?html`<div class="err" role="alert"><${Badge} color="error">Error<//><span>${name} could not be displayed.</span><${Button} size="sm" onClick=${()=>this.setState({e:null})}>Retry<//></div>`:children}}
+const Section=({id,eyebrow,title,lead,children})=>html`<section class="sec" id=${id}><div class="w"><${Boundary} name=${eyebrow||id}>
+  ${eyebrow?html`<span class="eyebrow mono">${eyebrow}</span>`:null}<h2>${title}</h2>${lead?html`<p class="lead">${lead}</p>`:null}${children}<//></div></section>`;
+const Card=({href,label,title,body,items})=>html`<${href?'a':'div'} class=${cx('card',href&&'lk')} href=${href} ...${href?{rel:'noopener'}:{}}>
+  ${label?html`<span class="mono">${label}</span>`:null}<h3>${title}</h3>${body?html`<p>${body}</p>`:null}${items?html`<ul>${items.map(x=>html`<li>${x}</li>`)}</ul>`:null}<//>`;
+
+/* ---------- Content ---------- */
+const NAV=[['Product','#platform'],['Solutions','#solutions'],['Resources','https://oxide.computer/blog'],['Company','https://oxide.computer/principles'],['Podcasts','https://oxide-and-friends.transistor.fm/'],['Blog','https://oxide.computer/blog']];
+const LOGOS=['Switch','Stoke Space','LLNL','INL','Jump Trading'];
+const FEATS=[['01 / Compute','Elastic compute','On-demand virtual machines, Kubernetes orchestration, AMD EPYC processors.','https://oxide.computer/product/compute'],['02 / Network','Elastic networking','Isolated VPCs, P4 programmable switching, high per-VM throughput.','https://oxide.computer/product/networking'],['03 / Power','Efficient power design','Larger fans, lower total draw, and a shared power delivery design.','https://oxide.computer/blog/how-oxide-cuts-data-center-power-consumption-in-half'],['04 / Storage','Elastic storage','NVMe block storage with triple-mirror protection and local NVMe disks.','https://oxide.computer/product/storage']];
+const VALUES=[['Secure by default','A fully auditable security chain: hardware root of trust, open-source firmware, cryptographic isolation.'],['Predictable, lower costs','Half the price of public cloud and traditional on-prem. No subscriptions, surprise bills, or egress fees.'],['API-driven developer velocity','Elastic resources on demand, with support for the tools developers already use.'],['2-hour setup','Go from delivery to provisioning in the same afternoon.']];
+const SOLS=[['Modern cloud repatriation','Public cloud experience with on-prem TCO.','hybrid-cloud'],['VMware exit','Co-designed hardware and software, with no licensing fees.','vmware'],['AI / machine learning','Run data-intensive workloads where your data belongs.','ai'],['High-performance computing','Batch compute and orchestration on secure multi-tenant infrastructure.','hpc'],['Sovereign cloud','Your data stays in your authority, on hardware you can verify.','sovereign-cloud'],['CI/CD','Dedicated runners with security baked in, at a fixed cost.','cicd']];
+const CLI=['$ oxide instance create \\','    --project ci --name ci-agent \\','    --ncpus 4 --memory 8GiB','','instance ci-agent  RUNNING'].join('\n');
+const API=['POST /v1/instances?project=ci','{','  "name": "ci-agent",','  "ncpus": 4,','  "memory": 8589934592','}'].join('\n');
+const CON=['Projects › ci › Instances','','[ New Instance ]  name · cpu · memory','Create. Running in seconds.'].join('\n');
+
+/* ---------- Pieces ---------- */
+const CH=' .:-=+*#';
+const frame=t=>{let s='';for(let y=0;y<9;y++){for(let x=0;x<46;x++){const v=(Math.sin(x*.35+t)+Math.sin(y*.7-t*.8)+Math.sin((x+y)*.2+t*.5)+3)/6;s+=CH[Math.min(7,v*8|0)]}s+='\n'}return s};
+const Ascii=()=>{
+  const r=useRef();
+  useEffect(()=>{const el=r.current;if(!el)return;el.textContent=frame(0);if(reduced()||!('IntersectionObserver' in window))return;
+    let on=false,id=0,last=0,t=0;
+    const loop=n=>{if(!on)return;id=requestAnimationFrame(loop);if(n-last<130)return;last=n;t+=.25;el.textContent=frame(t)};
+    const io=new IntersectionObserver(e=>{on=e[0].isIntersecting;cancelAnimationFrame(id);if(on)id=requestAnimationFrame(loop)});
+    io.observe(el);return()=>{io.disconnect();cancelAnimationFrame(id)}},[]);
+  return html`<pre class="ascii" ref=${r} aria-hidden="true"></pre>`};
+const Rack=()=>html`<div class="rack" role="img" aria-label="Illustration of a rack: twelve compute sleds and two switches, one sled showing a warning light">
+  ${Array.from({length:14},(_,i)=>html`<div class="sled"><i class=${cx('led',i===7&&'y')}></i><span class="mono">${i<12?'Sled '+String(i).padStart(2,'0'):'Switch '+(i===12?'A':'B')}${i===7?' · Check':''}</span></div>`)}</div>`;
+
+const Header=()=>{
+  const[open,setOpen]=useState(false),sheet=useRef();
+  useEffect(()=>{document.documentElement.classList.toggle('lock',open);
+    const esc=e=>{if(e.key==='Escape')setOpen(false)};addEventListener('keydown',esc);return()=>{removeEventListener('keydown',esc);document.documentElement.classList.remove('lock')}},[open]);
+  useEffect(()=>{const el=sheet.current;if(!el)return;let y0=null;
+    const s=e=>{y0=e.touches[0].clientY},m=e=>{if(y0!==null&&el.scrollTop<=0&&y0-e.changedTouches[0].clientY>70)setOpen(false);y0=null};
+    el.addEventListener('touchstart',s,{passive:true});el.addEventListener('touchend',m,{passive:true});
+    return()=>{el.removeEventListener('touchstart',s);el.removeEventListener('touchend',m)}},[]);
+  const close=()=>setOpen(false);
+  return html`<header><div class="w bar"><a class="logo" href="#top" aria-label="Oxide home">Oxide</a>
+    <nav class="d mono" aria-label="Primary">${NAV.map(([n,u])=>html`<a href=${u}>${n}</a>`)}</nav>
+    <div class="actions"><${Button} size="sm" href="https://oxide.computer/contact">Contact sales<//><${Button} variant="primary" size="sm" href="https://oxide.computer/remote-access">Try now<//></div>
+    <button class="burger" aria-label=${open?'Close menu':'Open menu'} aria-expanded=${open} aria-controls="sheet" onClick=${()=>setOpen(!open)}>
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d=${open?'M4 4l12 12M16 4L4 16':'M3 6h14M3 14h14'} stroke="currentColor" stroke-width="1.5" fill="none"/></svg></button></div>
+    <div class=${cx('sheet',open&&'on')} id="sheet" ref=${sheet} aria-hidden=${!open} inert=${!open||undefined}>
+      ${NAV.map(([n,u])=>html`<a class="l" href=${u} onClick=${close}>${n}</a>`)}
+      <div class="row"><${Button} href="https://oxide.computer/contact">Contact sales<//><${Button} variant="primary" href="https://oxide.computer/remote-access">Try now<//></div></div></header>`};
+
+const Hero=()=>html`<div class="w hero" id="top"><${Boundary} name="Hero"><${Ascii}/>
+  <h1>On-prem that feels like the public cloud</h1>
+  <p class="lead">Hardware, with the software baked in, for running infrastructure at scale. The cloud you own.</p>
+  <div class="cta"><${Button} variant="primary" href="https://oxide.computer/remote-access">Try now<//><${Button} href="https://oxide.computer/contact">Contact sales<//></div>
+  <div class="hero-g"><div><${Tabs} label="Interfaces" tabs=${[{id:'CLI',body:html`<pre class="code">${CLI}</pre>`},{id:'API',body:html`<pre class="code">${API}</pre>`},{id:'Console',body:html`<pre class="code">${CON}</pre>`}]}/></div>
+  <div><${Rack}/><div class="fig mono t3"><span>Fig. 1</span><span>Oxide cloud computer</span></div></div></div><//></div>
+  <div class="mqw" aria-label="Customers"><div class="mq">${[0,1].map(k=>LOGOS.map(l=>html`<span aria-hidden=${k?'true':undefined}>${l}</span>`))}</div></div>`;
+
+const SEED=[['ci-agent',4,8,'running'],['prod-db-primary',8,32,'running'],['prod-db-replica',8,32,'running'],['web-server-1',4,16,'stopped'],['cache-redis',2,8,'running']];
+const ConsoleDemo=()=>{
+  const[rows,setRows]=useState(SEED),[busy,setBusy]=useState(false),[err,setErr]=useState('');
+  const add=useCallback(async()=>{
+    setErr('');setBusy(true);
+    try{await new Promise(r=>setTimeout(r,600));/* min spinner time so it never flickers */
+      if(rows.length>=8)throw new Error('Quota reached: this project allows 8 instances.');
+      setRows(r=>[...r,['instance-'+(r.length+1),2,8,'running']])}
+    catch(e){report(e,'console');setErr(e.message)}finally{setBusy(false)}},[rows.length]);
+  return html`<div><div class="tool"><span class="mono t3">Fig. 2 · Instances</span><${Button} variant="primary" size="sm" loading=${busy} onClick=${add}>New instance<//></div>
+   <div role="status" aria-live="polite" style="min-height:0">${err?html`<div class="err" role="alert"><${Badge} color="error">Failed<//><span>${err}</span></div>`:null}</div>
+   <div class="tw" tabindex="0" role="region" aria-label="Instances table"><table><thead><tr><th class="mono">Name</th><th class="mono">CPU</th><th class="mono">Memory</th><th class="mono">State</th></tr></thead>
+   <tbody>${rows.map(([n,c,m,s])=>html`<tr key=${n}><td>${n}</td><td>${c} vCPU</td><td>${m} GiB</td><td><${Badge} color=${s==='running'?'':'neutral'}>${s}<//></td></tr>`)}</tbody></table></div></div>`};
+
+const Subscribe=()=>{
+  const[st,setSt]=useState('idle'),[m,setM]=useState('');
+  const submit=async e=>{e.preventDefault();
+    const v=String(new FormData(e.currentTarget).get('email')||'').trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){setSt('error');setM('Enter a valid email address.');return}
+    setSt('loading');setM('');
+    try{await new Promise(r=>setTimeout(r,700));setSt('ok');setM('Thanks. This demo form does not send data anywhere.')}
+    catch(x){report(x,'subscribe');setSt('error');setM('Something went wrong. Please try again.')}};
+  return html`<form class="f" onSubmit=${submit} noValidate>
+    <input name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" autocorrect="off" enterkeyhint="send" placeholder="you@company.com" aria-label="Email address" aria-invalid=${st==='error'} aria-describedby="sm" disabled=${st==='loading'}/>
+    <button type="submit" class="btn primary" aria-disabled=${st==='loading'||undefined}>${st==='loading'?html`<${Spinner}/>`:null}Subscribe</button>
+    <p id="sm" class=${cx('msg','w-full',st==='error'&&'bad')} style="flex-basis:100%" role="status" aria-live="polite">${m}</p></form>`};
+
+const App=()=>html`<${Header}/><main>
+  <${Hero}/>
+  <${Section} id="platform" eyebrow="One integrated platform" title="Compute, storage, networking, software. The public cloud is built this way. Oxide is, too." lead="Run AI, HPC, mission-critical, and general workloads with the elasticity, programmability, and unified control of cloud.">
+    <div class="g c4">${FEATS.map(f=>html`<${Card} label=${f[0]} title=${f[1]} body=${f[2]} href=${f[3]}/>`)}</div><//>
+  <${Section} id="compare" eyebrow="The old tradeoff" title="For decades, enterprises only had two options. Both required compromise.">
+    <div class="g c2"><${Card} label="Traditional on-prem" title="Ownership, but at a cost" items=${['8+ vendors across compute, networking, storage, orchestration','Complex operations and brittle integrations','Finger-pointing vendors who evade accountability','Expensive licensing and operational overhead']}/>
+    <${Card} label="The public cloud" title="Speed and integration, but at a cost" items=${['No ownership, only rental, forever','Unpredictable bills and soaring egress fees','Governance gaps for sensitive workloads','Vendor lock-in via proprietary APIs']}/></div><//>
+  <${Section} id="values" eyebrow="The new option" title="For the first time, the speed of cloud meets on-prem governance.">
+    <div class="g c4">${VALUES.map((v,i)=>html`<${Card} label=${'0'+(i+1)} title=${v[0]} body=${v[1]}/>`)}</div><//>
+  <${Section} id="console" eyebrow="Web console" title="The biggest forward leap in on-prem in decades"><div style="margin-top:40px"><${ConsoleDemo}/></div><//>
+  <${Section} id="solutions" eyebrow="Solutions" title="Purpose-built for frontier workloads">
+    <div class="g c3">${SOLS.map(s=>html`<${Card} title=${s[0]} body=${s[1]} href=${'https://oxide.computer/solutions/'+s[2]}/>`)}</div><//>
+  <${Section} id="subscribe" eyebrow="Stay current" title="Modernize your infrastructure" lead="Get product updates and Oxide news.">
+    <${Subscribe}/><div class="cta"><${Button} href="https://oxide.computer/contact">Contact us<//><${Button} variant="primary" href="https://oxide.computer/remote-access">Try it now<//></div><//>
+</main>
+<footer><div class="w"><div class="fg"><div><span class="logo">Oxide</span><p class="t3" style="margin-top:8px">The cloud you own.</p></div>
+  ${[['Product',[['Compute','product/compute'],['Storage','product/storage'],['Networking','product/networking']]],['Company',[['Principles','principles'],['Careers','careers'],['Press','press']]],['Resources',[['Blog','blog'],['FAQ Friday','faq-friday'],['Events','events']]]].map(([t,l])=>html`<div><span class="mono">${t}</span><ul>${l.map(([n,p])=>html`<li><a href=${'https://oxide.computer/'+p}>${n}</a></li>`)}</ul></div>`)}</div>
+  <p class="t3" style="margin-top:40px;font-size:12px">Unofficial recreation built with the open Oxide design-system tokens (MPL-2.0). Not affiliated with Oxide Computer Company. Proprietary typefaces are substituted with Inter and JetBrains Mono.</p></div></footer>`;
+
+try{root.textContent='';render(html`<${App}/>`,root)}
+catch(e){report(e,'mount');root.innerHTML='';var fb=document.createElement('div');fb.id='fb';fb.className='w';fb.innerHTML='<h1>Oxide</h1><p>Something went wrong while loading. Please reload the page.</p>';root.appendChild(fb)}
+})();
+</script>
+</body>
+</html>
