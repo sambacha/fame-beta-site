@@ -59,3 +59,4 @@ server.log
 /public/llms-full.txt
 dev.log
 tsconfig.tsbuildinfo
+tool-results/
