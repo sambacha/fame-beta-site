@@ -60,3 +60,15 @@ server.log
 dev.log
 tsconfig.tsbuildinfo
 tool-results/
+
+# sandbox/owner-local material (kept on disk, never in the repo)
+.env
+Caddyfile
+.zscripts/
+/upload/
+/download/
+/db/
+/examples/
+/mini-services/
+/tests/
+/components.json

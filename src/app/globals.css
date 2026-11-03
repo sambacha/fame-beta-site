@@ -230,6 +230,10 @@
     color: var(--content-default);
     /* Kill the grey tap flash on iOS without disabling tap feedback entirely */
     -webkit-tap-highlight-color: transparent;
+    /* 100vh fallback for iOS < 15.4; the min-h-dvh utility wins where dvh is
+       supported (utilities layer cascade), keeping full-height layouts stable
+       on mobile browsers with collapsing URL bars. */
+    min-height: 100vh;
   }
   /* 16px floor on form controls prevents iOS focus zoom (WCAG + iOS fix) */
   input,
@@ -273,6 +277,10 @@
   .scroll-area {
     scrollbar-width: thin;
     scrollbar-color: var(--stroke-raise) transparent;
+    /* iOS: contain scroll chaining so a swipe inside the blotter/chart never
+       hijacks the page scroll; explicit momentum scrolling for older iOS. */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
   .scroll-area::-webkit-scrollbar {
     width: 8px;

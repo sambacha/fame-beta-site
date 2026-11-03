@@ -22,7 +22,7 @@ export function Nav() {
   const isHome = pathname === "/"
 
   return (
-    <header className="sticky top-0 z-50 border-b border-stroke-default bg-surface-default/85 backdrop-bar">
+    <header className="sticky top-0 z-50 border-b border-stroke-default bg-surface-default/85 backdrop-bar pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link
           href="/"

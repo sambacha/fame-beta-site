@@ -186,3 +186,108 @@ for the full two-pass review):
    422 KB (≤ 550), css 17 KB (≤ 40), docs 17 KB (≤ 80), html pages ≤ 40 KB
    each. All host workflows unchanged apart from CI now building with Pages
    coordinates.
+
+---
+
+## 1.1.1 — Deployment-readiness review (GitHub Pages focus)
+
+Polya cycle for the "review the codebase and make corrections to deploy a
+fully working version using GitHub Pages" pass. Everything was re-verified
+from zero rather than trusted from prior records.
+
+1. **Understand** — full inventory + gate re-execution: lint ✅, typecheck ✅,
+   Pages-coordinate build ✅ (8 pages prerendered), verify-artifacts ✅
+   (88 files · 953.7 KB gz), smoke ✅ (85 assertions). Workflow YAMLs parsed
+   and job graphs confirmed. Hidden-file audit: `.nojekyll`, `_headers`,
+   `_redirects` present in `public/` and shipped in `out/`; `.gitignore`
+   excludes `out/`, `.env*`, build debris.
+2. **Plan** — the review found the artifact itself fully functional but the
+   repository not push-ready: **no `origin` remote existed**, so
+   `deploy-pages.yml` (which triggers on push to `main`) could never fire.
+   Corrections: add the remote, validate all three workflow YAMLs, exercise
+   the live-mode (`--url`) code path of the smoke suite, record the cycle,
+   commit.
+3. **Carry out** — `origin` → `https://github.com/Fairmeme3/fame-program.git`;
+   YAML validation (ci.yml: 1 job · deploy-pages.yml: build → deploy →
+   post-deploy-smoke · deploy-cloudflare.yml: deploy → post-deploy-smoke);
+   smoke.mjs `--url`/`--retries` live mode confirmed present (redirect-
+   following for Pages 301s, 5xx/network retry loop).
+4. **Look back** — browser verification of the static artifact served with
+   Pages routing at the `/fame-program` mount: home hydrates with zero page
+   errors and zero console noise; 15 chart SVGs render; order-flow golden
+   path exercised end-to-end (Select → 4 second-leg radios → `$25,000` →
+   read-only leg auto-derived `$22K hedge notional` = 25,000 × (1 − 0.12) →
+   summary + 4 payoff chart SVGs → `data-pulse` CTA armed); journal article
+   renders 12 chart SVGs + comparison table with a base-path-aware canonical;
+   unknown routes serve the branded 404 with HTTP 404. The empty regions in
+   full-page screenshots are a `content-visibility: auto` capture artifact,
+   not missing content (DOM probes and viewport screenshots confirm).
+
+**Deployment checklist for the owner** (the only steps the sandbox cannot do):
+
+```bash
+git push -u origin main          # first push fires ci.yml + both deploy workflows
+# then, one time in the GitHub UI:
+#   Settings → Pages → Build and deployment → Source: "GitHub Actions"
+# Cloudflare (optional second surface):
+#   repo secrets CLOUDFLARE_API_TOKEN (Pages: Edit) + CLOUDFLARE_ACCOUNT_ID
+```
+
+Residual notes: the untracked `.env` (`DATABASE_URL` pointing at a deleted
+`db/` dir) is scaffold debris ignored by `.gitignore` — it never reaches the
+artifact or the repo; `out/build-manifest.json` ships in the artifact by
+design (SHA-256 provenance for the verified build).
+
+---
+
+## 1.2.0 — Dependency audit, script-side Cloudflare deploy, mobile hardening
+
+Polya cycle for the "fix all dependencies + Cloudflare deploy option in
+scripts + mobile/iOS/Safari optimization + completeness (build locally, no
+test files/frameworks/unnecessary packages)" pass.
+
+1. **Understand** — a mechanical import-graph audit (every `from` in `src/`
+   and `scripts/` vs. `package.json`) exposed the gap between the 1.1.x
+   records and disk reality: **48 shadcn/ui scaffold components were still
+   tracked** (only `toast`/`toaster` are used), importing ~20 Radix packages,
+   `cmdk`, `vaul`, `sonner`, `recharts`, `lucide-react`,
+   `class-variance-authority`, `embla-carousel-react`, `react-hook-form`,
+   `react-day-picker`, `react-resizable-panels`, `input-otp`, `next-themes`
+   that are **not direct dependencies** (phantom deps that resolve only via
+   hoisted transitives). Also still tracked despite the 1.0 cleanup records:
+   `src/app/api/` (hello-world route — breaks `output: export`),
+   `src/lib/db.ts` (`@prisma/client`, `next/server` phantoms),
+   `scripts/probe-flow.mjs` (`jsdom` phantom), `scripts/oxide-*.css` +
+   `scripts/spike/`, `examples/`, `db/`, `mini-services/`, `tests/`,
+   `components.json`, `tailwind.config.ts` (Tailwind 4 is CSS-first; no
+   `@config` reference), plus owner-local material (`.env`, `upload/`,
+   `download/`, `.zscripts/`, `Caddyfile`). The deployment hardening already
+   shipped (font `display: swap` via `next/font`, `touch-action:
+   manipulation`, `-webkit-tap-highlight-color`, 16px input floor,
+   `-webkit-backdrop-filter`, `text-size-adjust`, `content-visibility` +
+   `contain-intrinsic-size`, `prefers-reduced-motion`, passive listeners, no
+   `<img>` elements) was verified line-by-line.
+2. **Plan** — (a) delete every unused importer so the phantom-dependency
+   surface disappears; untrack owner-local material (kept on disk, ignored);
+   (b) `bun update` all deps within range (next 16.4.5, react 19.3.1,
+   tailwindcss 4.3.4, radix-toast 1.3.1, tailwind-merge 3.7.0, biome 2.6.5 +
+   schema migrate); (c) add a script-side Cloudflare deploy option
+   (`scripts/deploy-cloudflare.mjs` + `deploy:cloudflare` /
+   `deploy:cloudflare:dry-run`) running the identical gate sequence, with
+   `--dry-run` for credential-free verification — GitHub Pages stays
+   workflow-driven (Actions runtime + OIDC); (d) close the remaining mobile
+   gaps: `overscroll-behavior: contain` + `-webkit-overflow-scrolling: touch`
+   on inner scroll areas, a `100vh` body fallback under the `min-h-dvh`
+   utility (iOS < 15.4), and safe-area insets on the sticky nav
+   (`env(safe-area-inset-left/right)`, footer already handled the bottom).
+3. **Carry out** — 58 tracked files deleted or untracked; lockfile refreshed
+   (543 packages installed on a clean `bun install --frozen-lockfile`, down
+   from 627); new deploy script committed; CSS/nav patches applied.
+4. **Look back** — from the clean install: lint ✅, typecheck ✅,
+   `bun run test` ✅ (Pages build → 76-file artifact verify, 955.5 KB gz →
+   85 smoke assertions), `deploy:cloudflare:dry-run` ✅ (same gates at
+   domain-root coordinates, nothing deployed). Browser verification at
+   390×844 (iPhone 14): zero horizontal overflow on `/` and the article,
+   15/12 chart SVGs render, ≥44px primary targets. Remaining phantom-import
+   check: every `from` in `src/` + `scripts/` now resolves to a package.json
+   entry or `node:` builtin.
