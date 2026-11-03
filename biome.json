@@ -1,0 +1,84 @@
+{
+        "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
+        "files": {
+                "includes": [
+                        "src/app/**",
+                        "src/lib/**",
+                        "src/components/**",
+                        "!src/components/ui/**",
+                        "!src/app/globals.css"
+                ]
+        },
+        "linter": {
+                "enabled": true,
+                "rules": {
+                        "preset": "recommended",
+                        "correctness": {
+                                "noUnusedVariables": "error",
+                                "noUndeclaredVariables": "error",
+                                "useExhaustiveDependencies": "error",
+                                "noConstantCondition": "error"
+                        },
+                        "style": {
+                                "noNonNullAssertion": "error",
+                                "useConst": "error",
+                                "noParameterAssign": "error",
+                                "useNumberNamespace": "error",
+                                "noInferrableTypes": "error",
+                                "noUselessElse": "error",
+                                "useNamingConvention": "off"
+                        },
+                        "complexity": {
+                                "noUselessTypeConstraint": "error",
+                                "noExtraBooleanCast": "error",
+                                "noUselessFragments": "error",
+                                "noUselessCatch": "error"
+                        },
+                        "suspicious": {
+                                "noExplicitAny": "error",
+                                "noDoubleEquals": "error",
+                                "noConsole": {
+                                        "level": "error",
+                                        "options": { "allow": ["warn", "error", "info"] }
+                                },
+                                "noArrayIndexKey": "warn",
+                                "noCommentText": "error",
+                                "noImplicitAnyLet": "error"
+                        },
+                        "a11y": {
+                                "preset": "recommended",
+                                "useKeyWithClickEvents": "error",
+                                "noStaticElementInteractions": "error",
+                                "useFocusableInteractive": "error",
+                                "useSemanticElements": "warn",
+                                "noSvgWithoutTitle": "off"
+                        },
+                        "security": {
+                                "noDangerouslySetInnerHtml": "off"
+                        }
+                }
+        },
+        "formatter": {
+                "enabled": true,
+                "indentStyle": "space",
+                "indentWidth": 2,
+                "lineWidth": 100
+        },
+        "assist": {
+                "actions": {
+                        "source": {
+                                "organizeImports": "on"
+                        }
+                }
+        },
+        "javascript": {
+                "formatter": {
+                        "jsxQuoteStyle": "double",
+                        "quoteStyle": "double",
+                        "semicolons": "asNeeded",
+                        "trailingCommas": "all",
+                        "arrowParentheses": "always"
+                },
+                "globals": ["Bun"]
+        }
+}
