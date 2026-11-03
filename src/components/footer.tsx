@@ -29,7 +29,7 @@ export function Footer() {
             <li>
               <a
                 href="#research"
-                className="inline-flex min-h-8 items-center text-content-secondary hover:text-brand-green"
+                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
               >
                 Journal
               </a>
@@ -39,7 +39,7 @@ export function Footer() {
                 href={SITE.repo}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-8 items-center text-content-secondary hover:text-brand-green"
+                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
               >
                 GitHub — fame-program
               </a>
@@ -53,7 +53,7 @@ export function Footer() {
             <li>
               <a
                 href="#stability"
-                className="inline-flex min-h-8 items-center text-content-secondary hover:text-brand-green"
+                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
               >
                 Safety model
               </a>
@@ -61,7 +61,7 @@ export function Footer() {
             <li>
               <a
                 href="#build"
-                className="inline-flex min-h-8 items-center text-content-secondary hover:text-brand-green"
+                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
               >
                 Parametric order flow
               </a>
@@ -69,7 +69,7 @@ export function Footer() {
             <li>
               <a
                 href="#access"
-                className="inline-flex min-h-8 items-center text-content-secondary hover:text-brand-green"
+                className="inline-flex min-h-11 items-center text-content-secondary hover:text-brand-green"
               >
                 Request access
               </a>

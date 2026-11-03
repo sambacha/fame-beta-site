@@ -56,9 +56,9 @@ export function OrderFlowSection() {
           Compose a parley the way the margin engine sees it.
         </h2>
         <p className="mt-4 max-w-2xl text-content-secondary">
-          Three nodes, one state machine: pick a primary trade, add a compatible second leg, and the
-          engine computes combined carry, leg correlation and margin bounds before you confirm.
-          Keyboard-first — every node is a standard ARIA pattern.
+          Three nodes, one state machine: pick a primary trade, add a compatible second leg, then
+          set the ticket notional — the dependent leg auto-sizes and the payoff bounds re-project in
+          real time. Keyboard-first — every node is a standard ARIA pattern.
         </p>
 
         <div ref={ref} className="mt-10">

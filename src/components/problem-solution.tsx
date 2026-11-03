@@ -53,7 +53,11 @@ export function ProblemSolution() {
   const narrative = persona === "institutional" ? INSTITUTIONAL : RETAIL
 
   return (
-    <section id="why-fame" aria-labelledby="why-title" className="border-b border-stroke-dim">
+    <section
+      id="why-fame"
+      aria-labelledby="why-title"
+      className="cv-auto border-b border-stroke-dim"
+    >
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-20">
         <p className="font-mono text-xs tracking-[0.25em] text-brand-green">WHY FAME</p>
         <h2

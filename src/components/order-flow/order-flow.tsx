@@ -1,22 +1,32 @@
 "use client"
 
 import { Dialog } from "@base-ui-components/react/dialog"
+import { Field } from "@base-ui-components/react/field"
 import { Radio } from "@base-ui-components/react/radio"
 import { RadioGroup } from "@base-ui-components/react/radio-group"
 import { Select } from "@base-ui-components/react/select"
-import { Metric } from "@tremor/react"
+import { AreaChart, Metric } from "@tremor/react"
 import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { useReducedMotion } from "@/lib/hooks"
 import {
   computeParlay,
   findTrade,
+  formatCompactUsd,
+  formatSignedUsd,
   type LegOption,
+  MIN_TICKET_USD,
+  type OrderConfig,
+  type PayoffPoint,
   SECOND_LEGS,
   TRADE_A_OPTIONS,
 } from "@/lib/order-data"
 import { type OrderState, useOrderBuilder } from "./use-order-builder"
 
 const RISK_LABELS = { conservative: "LOW", balanced: "MED", aggressive: "HIGH" } as const
+
+const CONTROL_CLASS =
+  "min-h-11 w-full rounded-tremor-default border border-stroke-strong bg-surface-inset px-3 py-2.5 text-base text-content-primary placeholder:text-content-faint focus:outline-none"
 
 type NodeStatus = "idle" | "active" | "validating" | "complete" | "error"
 
@@ -204,6 +214,253 @@ const LegRadio = memo(function LegRadio({
   )
 })
 
+/* ── Parametric Order Configuration ────────────────────────────────────────
+   Amount (input) → dependent second leg (read-only) → payoff projection.
+   All three derive from one synchronized `orderData` object in the hook, so
+   the read-only field and the chart can never disagree with the ticket. */
+
+const AmountField = memo(function AmountField({
+  raw,
+  error,
+  maxUsd,
+  tradeLabel,
+  onChange,
+}: {
+  raw: string
+  error: string | null
+  maxUsd: number
+  tradeLabel: string
+  onChange: (raw: string) => void
+}) {
+  return (
+    <Field.Root name="amount" className="flex flex-col gap-1.5">
+      <Field.Label className="text-sm font-medium text-content-secondary">
+        Amount (USD){" "}
+        <span aria-hidden="true" className="text-brand-coral">
+          *
+        </span>
+      </Field.Label>
+      <Field.Control
+        type="number"
+        inputMode="decimal"
+        required
+        aria-required="true"
+        min={MIN_TICKET_USD}
+        max={maxUsd}
+        step={1000}
+        value={raw}
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
+        placeholder="50,000"
+        aria-invalid={error ? "true" : undefined}
+        aria-errormessage={error ? "amount-error" : undefined}
+        aria-describedby={error ? "amount-error" : "amount-hint"}
+        className={`${CONTROL_CLASS} ${error ? "border-brand-coral focus:border-brand-coral" : "focus:border-brand-green"}`}
+      />
+      {error ? (
+        <p
+          id="amount-error"
+          aria-live="polite"
+          className="text-xs leading-relaxed text-brand-coral"
+        >
+          {error}
+        </p>
+      ) : (
+        <p id="amount-hint" className="font-mono text-[11px] text-content-faint">
+          Liquidity bound for {tradeLabel}: {formatCompactUsd(maxUsd)} per ticket · min{" "}
+          {formatCompactUsd(MIN_TICKET_USD)}
+        </p>
+      )}
+    </Field.Root>
+  )
+})
+
+const LegTwoField = memo(function LegTwoField({
+  legTwo,
+  legLabel,
+}: {
+  legTwo: OrderConfig["legTwo"]
+  legLabel: string | null
+}) {
+  const value = legTwo
+    ? `${legTwo.label} — ${formatCompactUsd(legTwo.notionalUsd)} hedge notional`
+    : legLabel
+      ? `${legLabel} — awaiting ticket amount`
+      : "Select a second leg to populate"
+  return (
+    <Field.Root name="legTwo" className="flex flex-col gap-1.5">
+      <Field.Label className="text-sm font-medium text-content-secondary">
+        Secondary leg (auto-populated)
+      </Field.Label>
+      <Field.Control
+        readOnly
+        value={value}
+        aria-readonly="true"
+        className={`${CONTROL_CLASS} cursor-default text-content-secondary`}
+      />
+      <p className="font-mono text-[11px] text-content-faint" aria-live="polite">
+        {legTwo
+          ? `${legTwo.ratio} · offsets the primary leg's residual exposure`
+          : "Sizing = ticket × (1 − |ρ|) — the residual exposure offset"}
+      </p>
+    </Field.Root>
+  )
+})
+
+const ConfigSummaryBlock = memo(function ConfigSummaryBlock({
+  summary,
+}: {
+  summary: OrderConfig["summary"]
+}) {
+  if (!summary) return null
+  const cells: [string, string][] = [
+    [
+      "Liquidity",
+      `${summary.utilizationPct.toFixed(0)}% of ${formatCompactUsd(summary.liquidityBoundUsd)}`,
+    ],
+    ["Risk", summary.riskLabel],
+    ["Expected maturity", summary.maturity],
+    [
+      "Breakeven",
+      `${summary.breakevenMovePct > 0 ? "+" : ""}${summary.breakevenMovePct.toFixed(1)}% spot`,
+    ],
+  ]
+  return (
+    <div aria-live="polite">
+      <p className="sr-only">
+        Configuration summary — updates automatically as the ticket and legs change.
+      </p>
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-xs">
+        {cells.map(([term, value]) => (
+          <div key={term} className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
+            <dt className="text-content-faint">{term}</dt>
+            <dd className="text-right text-content-secondary">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-2 text-[11px] leading-relaxed text-content-faint">
+        {summary.basis === "ticket"
+          ? `Projected on your ${formatCompactUsd(summary.notionalUsd)} ticket · max gain ${formatSignedUsd(summary.maxGainUsd)} · max loss ${formatSignedUsd(summary.maxLossUsd)}.`
+          : `Projected at the ${formatCompactUsd(summary.notionalUsd)} reference ticket — enter an amount to resize the projection.`}
+      </p>
+    </div>
+  )
+})
+
+const PayoffChart = memo(function PayoffChart({
+  curve,
+  reducedMotion,
+  hasTicket,
+}: {
+  curve: PayoffPoint[]
+  reducedMotion: boolean
+  hasTicket: boolean
+}) {
+  return (
+    <figure className="m-0">
+      <figcaption className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-tremor-default font-medium text-tremor-content-emphasis">
+          Payoff at settlement vs. spot
+        </p>
+        <p className="font-mono text-[11px] text-content-faint">
+          {hasTicket ? "ticket basis" : "$10k reference basis"}
+        </p>
+      </figcaption>
+      <AreaChart
+        data={curve}
+        index="move"
+        categories={["Parley P&L", "Upper 1σ", "Lower 1σ"]}
+        colors={["emerald", "teal", "rose"]}
+        valueFormatter={(value: number) => formatSignedUsd(value)}
+        className="mt-3 h-64"
+        autoMinValue
+        showAnimation={!reducedMotion}
+        showLegend
+        curveType="natural"
+      />
+      <figcaption className="mt-2 text-[11px] leading-relaxed text-content-faint">
+        Two-leg projection: primary exposure ± correlation-offset hedge + 30-day carry − 15 bps
+        venue fee. Band = ±1σ from a 38% annualised vol assumption. Illustrative — not investment
+        advice.
+      </figcaption>
+    </figure>
+  )
+})
+
+const OrderConfigPanel = memo(function OrderConfigPanel({
+  tradeA,
+  leg,
+  orderData,
+  amountRaw,
+  amountError,
+  reducedMotion,
+  onAmountChange,
+}: {
+  tradeA: ReturnType<typeof findTrade>
+  leg: LegOption | null
+  orderData: OrderConfig
+  amountRaw: string
+  amountError: string | null
+  reducedMotion: boolean
+  onAmountChange: (raw: string) => void
+}) {
+  if (!tradeA) {
+    return (
+      <section
+        aria-labelledby="config-title"
+        className="mt-4 rounded-tremor-default border border-dashed border-stroke-dim bg-surface-inset/40 p-5 sm:p-6"
+      >
+        <h3
+          id="config-title"
+          className="font-mono text-sm font-semibold uppercase tracking-widest text-content-faint"
+        >
+          Parametric Order Configuration
+        </h3>
+        <p aria-live="polite" className="mt-2 text-sm text-content-faint">
+          Locked — select a primary trade to size the ticket and project payoff bounds.
+        </p>
+      </section>
+    )
+  }
+
+  return (
+    <section
+      aria-labelledby="config-title"
+      className="mt-4 rounded-tremor-default border border-stroke-dim bg-surface-base/60 p-5 sm:p-6"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3
+          id="config-title"
+          className="font-mono text-sm font-semibold uppercase tracking-widest text-content-primary"
+        >
+          Parametric Order Configuration
+        </h3>
+        <p className="font-mono text-[11px] text-content-faint">
+          leg one {orderData.legOne || "—"} · bound {formatCompactUsd(tradeA.maxNotionalUsd)}
+        </p>
+      </div>
+
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8">
+        <div className="flex flex-col gap-5">
+          <AmountField
+            raw={amountRaw}
+            error={amountError}
+            maxUsd={tradeA.maxNotionalUsd}
+            tradeLabel={tradeA.label}
+            onChange={onAmountChange}
+          />
+          <LegTwoField legTwo={orderData.legTwo} legLabel={leg?.label ?? null} />
+          <ConfigSummaryBlock summary={orderData.summary} />
+        </div>
+        <PayoffChart
+          curve={orderData.summary?.curve ?? []}
+          reducedMotion={reducedMotion}
+          hasTicket={orderData.summary?.basis === "ticket"}
+        />
+      </div>
+    </section>
+  )
+})
+
 /** Node C — parametric summary + confirm dialog. */
 const SummaryPanel = memo(function SummaryPanel({
   phase,
@@ -211,6 +468,8 @@ const SummaryPanel = memo(function SummaryPanel({
   legs,
   correlation,
   combinedApr,
+  notionalUsd,
+  utilizationPct,
   onRoute,
 }: {
   phase: OrderState["phase"]
@@ -218,6 +477,8 @@ const SummaryPanel = memo(function SummaryPanel({
   legs: string
   correlation: number
   combinedApr: number
+  notionalUsd: number | null
+  utilizationPct: number | null
   onRoute: () => void
 }) {
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -241,8 +502,8 @@ const SummaryPanel = memo(function SummaryPanel({
     return (
       <div className="flex flex-1 flex-col justify-center">
         <p className="text-sm text-content-faint">
-          Complete legs one and two to compute the parametric summary — correlation, combined carry
-          and margin bounds.
+          Complete legs one and two, then set the ticket notional in the configuration panel —
+          correlation, combined carry and margin bounds follow.
         </p>
         <div aria-hidden="true" className="mt-4 space-y-2">
           <div className="h-3 w-3/4 rounded bg-surface-raised" />
@@ -278,6 +539,18 @@ const SummaryPanel = memo(function SummaryPanel({
         <div className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
           <dt className="text-content-faint">Margin</dt>
           <dd className="text-content-secondary">Pre-cleared</dd>
+        </div>
+        <div className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
+          <dt className="text-content-faint">Notional</dt>
+          <dd className="text-content-secondary">
+            {notionalUsd !== null ? formatCompactUsd(notionalUsd) : "—"}
+          </dd>
+        </div>
+        <div className="flex justify-between gap-2 border-b border-stroke-dim/60 pb-1">
+          <dt className="text-content-faint">Utilization</dt>
+          <dd className="text-content-secondary">
+            {utilizationPct !== null ? `${utilizationPct.toFixed(0)}% of bound` : "—"}
+          </dd>
         </div>
       </dl>
 
@@ -327,10 +600,21 @@ const SummaryPanel = memo(function SummaryPanel({
  * edges that respect prefers-reduced-motion.
  */
 export function OrderFlowBuilder() {
-  const { state, tradeA, leg, announcement, selectTradeA, selectLegB, submit, reset } =
-    useOrderBuilder()
+  const {
+    state,
+    tradeA,
+    leg,
+    orderData,
+    announcement,
+    handleNodeSelect,
+    handleAmountChange,
+    submit,
+    reset,
+  } = useOrderBuilder()
   const { toast, dismiss } = useToast()
+  const reducedMotion = useReducedMotion()
   const lastAttemptRef = useRef(0)
+  const lastAmountErrorRef = useRef<string | null>(null)
 
   const legs: LegOption[] = tradeA ? (SECOND_LEGS[tradeA.id] ?? []) : []
 
@@ -349,6 +633,22 @@ export function OrderFlowBuilder() {
     }
   }, [state.phase, state.invalidReason, state.attempts, toast, dismiss])
 
+  // Non-destructive toast when the ticket breaches the protocol's liquidity
+  // bounds — fires once per new constraint, never on every keystroke.
+  useEffect(() => {
+    const previous = lastAmountErrorRef.current
+    lastAmountErrorRef.current = state.amountError
+    if (!state.amountError || state.amountError === previous) return
+    const { id } = toast({
+      title: "Notional outside liquidity bounds",
+      description: state.amountError,
+    })
+    const timer = window.setTimeout(() => dismiss(id), 6500)
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [state.amountError, toast, dismiss])
+
   const nodeAStatus: NodeStatus = state.tradeAId ? "complete" : "active"
   const nodeBStatus: NodeStatus =
     state.phase === "INVALID_PAIR"
@@ -364,6 +664,7 @@ export function OrderFlowBuilder() {
     state.phase === "SUBMITTED" ? "complete" : state.phase === "PARLEY_READY" ? "active" : "idle"
 
   const parley = tradeA && leg && state.phase === "PARLEY_READY" ? computeParlay(tradeA, leg) : null
+  const ticketBasis = orderData.summary?.basis === "ticket" ? orderData.summary : null
 
   return (
     <div className="rounded-tremor-default border border-stroke-dim bg-surface-inset/40 p-4 sm:p-6">
@@ -372,7 +673,10 @@ export function OrderFlowBuilder() {
           <p className="mb-4 text-sm text-content-secondary">
             Pick the primary leg. The margin engine unlocks compatible pairs for it.
           </p>
-          <TradeSelect tradeAId={state.tradeAId} onSelect={selectTradeA} />
+          <TradeSelect
+            tradeAId={state.tradeAId}
+            onSelect={(id, label) => handleNodeSelect("tradeA", { id, label })}
+          />
           {tradeA && (
             <p className="mt-4 font-mono text-[11px] text-content-faint">
               venue {tradeA.venue} · max notional ${(tradeA.maxNotionalUsd / 1_000_000).toFixed(1)}M
@@ -396,7 +700,7 @@ export function OrderFlowBuilder() {
             onValueChange={(value) => {
               if (typeof value === "string") {
                 const match = legs.find((legOption) => legOption.id === value)
-                if (match) selectLegB(match.id, match.label)
+                if (match) handleNodeSelect("legB", { id: match.id, label: match.label })
               }
             }}
             className="grid gap-2"
@@ -435,6 +739,8 @@ export function OrderFlowBuilder() {
             legs={parley?.legs ?? ""}
             correlation={leg?.correlation ?? 0}
             combinedApr={parley?.combinedApr ?? 0}
+            notionalUsd={ticketBasis?.notionalUsd ?? null}
+            utilizationPct={ticketBasis?.utilizationPct ?? null}
             onRoute={submit}
           />
           {state.phase === "SUBMITTED" && (
@@ -448,6 +754,17 @@ export function OrderFlowBuilder() {
           )}
         </FlowNode>
       </ol>
+
+      {/* Amount → dependent second leg → payoff projection, one synchronized surface. */}
+      <OrderConfigPanel
+        tradeA={tradeA}
+        leg={leg}
+        orderData={orderData}
+        amountRaw={state.amountRaw}
+        amountError={state.amountError}
+        reducedMotion={reducedMotion}
+        onAmountChange={handleAmountChange}
+      />
 
       <div role="status" aria-live="polite" className="sr-only">
         {announcement}

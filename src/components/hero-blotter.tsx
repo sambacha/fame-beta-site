@@ -44,7 +44,7 @@ type Flash = { id: string; dir: "up" | "down" } | null
 
 function MetricHint({ label, hint }: { label: string; hint: string }) {
   return (
-    <Tooltip.Provider delayDuration={120}>
+    <Tooltip.Provider>
       <Tooltip.Root>
         <Tooltip.Trigger
           aria-label={`About ${label}`}

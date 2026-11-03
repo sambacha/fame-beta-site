@@ -77,7 +77,11 @@ export function AccessCTA() {
   }
 
   return (
-    <section id="access" aria-labelledby="access-title" className="border-b border-stroke-dim">
+    <section
+      id="access"
+      aria-labelledby="access-title"
+      className="cv-auto border-b border-stroke-dim"
+    >
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-20">
         <div>
           <p className="font-mono text-xs tracking-[0.25em] text-brand-green">REQUEST ACCESS</p>
@@ -208,7 +212,7 @@ export function AccessCTA() {
                   Intended notional
                 </Field.Label>
                 <Select.Root
-                  items={[...NOTIONAL_BANDS]}
+                  items={NOTIONAL_BANDS.map((band) => ({ value: band, label: band }))}
                   value={values.notional}
                   onValueChange={(value) =>
                     set("notional", typeof value === "string" ? value : null)

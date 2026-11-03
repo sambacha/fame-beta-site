@@ -115,7 +115,7 @@ export function StabilityAnchor() {
                 <p className="font-mono text-[11px] uppercase tracking-widest text-content-faint">
                   {stat.term}
                 </p>
-                <Tooltip.Provider delayDuration={120}>
+                <Tooltip.Provider>
                   <Tooltip.Root>
                     <Tooltip.Trigger
                       aria-label={`What does ${stat.term} mean?`}

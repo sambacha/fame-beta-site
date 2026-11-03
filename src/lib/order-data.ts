@@ -5,6 +5,8 @@
  * a valid parametric parley with the primary trade and why.
  */
 
+import { formatCompactUsd } from "@/lib/market-data"
+
 export type RiskLevel = "conservative" | "balanced" | "aggressive"
 
 export type TradeOption = {
@@ -210,4 +212,197 @@ export function computeParlay(trade: TradeOption, leg: LegOption): ParleySummary
 
 export function parleyTicket(tick: number): string {
   return `FAME-${(240_000 + ((tick * 7919) % 100_000)).toString(36).toUpperCase()}`
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Parametric Order Configuration — dependent-leg sizing + payoff projection.
+   The amount box is the source of truth; the second leg and the payoff chart
+   are pure derivatives of it (amount → performCalculation → generateSummary),
+   so the input, read-only field and chart can never drift apart.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/** Protocol liquidity bound: below this the margin engine cannot size a leg. */
+export const MIN_TICKET_USD = 1_000
+
+/** Reference notional used to project the curve before a ticket is typed. */
+export const REFERENCE_NOTIONAL_USD = 10_000
+
+/** 30-day σ from a 38% annualised vol assumption (38% / √12 ≈ 11%). */
+const SIGMA_30D = 0.11
+
+/** Range-accrual width and accrual intensity for the bounded strategy. */
+const RANGE_WIDTH = 0.18
+const RANGE_ACCRUAL = 0.06
+
+const TENOR_DAYS = 30
+
+export type LegTwoComputed = {
+  legId: string | null
+  label: string
+  notionalUsd: number
+  ratio: string
+} | null
+
+export type PayoffPoint = {
+  move: string
+  "Parley P&L": number
+  "Upper 1σ": number
+  "Lower 1σ": number
+}
+
+export type ConfigSummary = {
+  notionalUsd: number
+  basis: "ticket" | "reference"
+  liquidityBoundUsd: number
+  utilizationPct: number
+  riskLabel: "LOW" | "MED" | "HIGH"
+  maturity: string
+  breakevenMovePct: number
+  maxGainUsd: number
+  maxLossUsd: number
+  curve: PayoffPoint[]
+}
+
+export type OrderConfig = {
+  amount: number | null
+  legOne: string
+  legTwo: LegTwoComputed
+  summary: ConfigSummary | null
+}
+
+export { formatCompactUsd }
+export const formatSignedUsd = (value: number): string => {
+  const abs = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(Math.abs(value))
+  return value >= 0 ? `+${abs}` : `−${abs}`
+}
+
+function primaryDirection(label: string): "long" | "short" | "range" {
+  if (label.startsWith("Long")) return "long"
+  if (label.startsWith("Short")) return "short"
+  return "range"
+}
+
+/**
+ * Dependent-leg sizing: the hedge notional scales with residual exposure
+ * (1 − |ρ|) so highly correlated legs carry a larger offsetting position.
+ */
+export function performCalculation(
+  amount: number,
+  trade: TradeOption | null,
+  leg: LegOption | null,
+): LegTwoComputed {
+  if (!trade || !leg || amount <= 0) return null
+  const residual = 1 - Math.abs(leg.correlation)
+  const notionalUsd = Math.round((amount * residual) / 1_000) * 1_000
+  return {
+    legId: leg.id,
+    label: leg.label,
+    notionalUsd,
+    ratio: `ρ ${leg.correlation.toFixed(2)} · ${(residual * 1.0).toFixed(2)}× sizing`,
+  }
+}
+
+/**
+ * Payoff at settlement vs. primary-underlying spot, with a 1σ volatility
+ * band. Pure and deterministic — the chart is a view over this function.
+ */
+export function generateSummary(
+  amount: number | null,
+  trade: TradeOption | null,
+  leg: LegOption | null,
+): ConfigSummary | null {
+  if (!trade) return null
+
+  const basis: "ticket" | "reference" = amount && amount > 0 ? "ticket" : "reference"
+  const notionalUsd = basis === "ticket" ? (amount as number) : REFERENCE_NOTIONAL_USD
+
+  const legApr = leg?.apr ?? trade.apr * 0.45
+  const combinedApr = trade.apr * 0.55 + legApr * 0.45 + PARLAY_KICKER
+  const carry = notionalUsd * (combinedApr / 100) * (TENOR_DAYS / 365)
+  const fees = -notionalUsd * (15 / 10_000)
+
+  const residual = leg ? 1 - Math.abs(leg.correlation) : 1
+  const hedgeNotional = notionalUsd * residual
+  const primaryLeverage = trade.risk === "aggressive" ? 1.6 : 1
+  const direction = primaryDirection(trade.label)
+  const sigma = notionalUsd * SIGMA_30D * primaryLeverage
+
+  const curve: PayoffPoint[] = []
+  for (let pct = -25; pct <= 25; pct += 5) {
+    const move = pct / 100
+    let primary: number
+    if (direction === "long") {
+      primary = notionalUsd * primaryLeverage * move
+    } else if (direction === "short") {
+      primary = -notionalUsd * primaryLeverage * move
+    } else {
+      primary = notionalUsd * RANGE_ACCRUAL * Math.max(0, 1 - Math.abs(move) / RANGE_WIDTH)
+    }
+    // The second leg offsets residual exposure in proportion to ρ.
+    const hedge = leg ? -leg.correlation * hedgeNotional * move : 0
+    const parley = primary + hedge + carry + fees
+    curve.push({
+      move: `${pct > 0 ? "+" : ""}${pct}%`,
+      "Parley P&L": Math.round(parley),
+      "Upper 1σ": Math.round(parley + sigma),
+      "Lower 1σ": Math.round(parley - sigma),
+    })
+  }
+
+  const pnls = curve.map((point) => point["Parley P&L"])
+  const riskLabel: ConfigSummary["riskLabel"] =
+    trade.risk === "aggressive" || (leg && Math.abs(leg.correlation) > 0.7)
+      ? "HIGH"
+      : trade.risk === "balanced"
+        ? "MED"
+        : "LOW"
+
+  return {
+    notionalUsd,
+    basis,
+    liquidityBoundUsd: trade.maxNotionalUsd,
+    utilizationPct: Math.min(100, (notionalUsd / trade.maxNotionalUsd) * 100),
+    riskLabel,
+    maturity: `${TENOR_DAYS}D · hourly slot settlement`,
+    breakevenMovePct: Math.round((-fees / (notionalUsd * primaryLeverage)) * 1_000) / 10,
+    maxGainUsd: Math.max(...pnls),
+    maxLossUsd: Math.min(...pnls),
+    curve,
+  }
+}
+
+/**
+ * Instant amount validation against the protocol's liquidity bounds.
+ * Returns the parsed ticket size plus a field-level error message; empty
+ * input stays neutral so untouched forms never shout at the user.
+ */
+export function validateAmount(
+  raw: string,
+  trade: TradeOption | null,
+): { amount: number | null; error: string | null } {
+  const trimmed = raw.trim()
+  if (trimmed === "") return { amount: null, error: null }
+  const value = Number(trimmed)
+  if (!Number.isFinite(value) || value <= 0) {
+    return { amount: null, error: "Enter the ticket size in US dollars — digits only." }
+  }
+  if (!trade) return { amount: value, error: null }
+  if (value < MIN_TICKET_USD) {
+    return {
+      amount: null,
+      error: `Minimum ticket is $${MIN_TICKET_USD.toLocaleString("en-US")} — below this the margin engine cannot allocate a second leg.`,
+    }
+  }
+  if (value > trade.maxNotionalUsd) {
+    return {
+      amount: null,
+      error: `Exceeds the liquidity bound for ${trade.label} — max ${formatCompactUsd(trade.maxNotionalUsd)} per ticket.`,
+    }
+  }
+  return { amount: Math.round(value), error: null }
 }
