@@ -1,27 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url>
-<loc>https://sambacha.github.io/fame-beta-site/</loc>
-<lastmod>2026-11-05T00:23:11.551Z</lastmod>
-<changefreq>weekly</changefreq>
-<priority>1</priority>
-</url>
-<url>
-<loc>https://sambacha.github.io/fame-beta-site/journal</loc>
-<lastmod>2026-11-05T00:23:11.551Z</lastmod>
-<changefreq>weekly</changefreq>
-<priority>0.9</priority>
-</url>
-<url>
-<loc>https://sambacha.github.io/fame-beta-site/journal/liquidity-ratios-emission-caps</loc>
-<lastmod>2026-10-30T00:00:00.000Z</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
-</url>
-<url>
-<loc>https://sambacha.github.io/fame-beta-site/journal/formal-verification-defi-safety</loc>
-<lastmod>2026-10-22T00:00:00.000Z</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
-</url>
+  <url>
+    <loc>https://fairmeme3.github.io/fame-program/</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://fairmeme3.github.io/fame-program/journal</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fairmeme3.github.io/fame-program/journal/liquidity-ratios-emission-caps</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fairmeme3.github.io/fame-program/journal/formal-verification-defi-safety</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>0.7</priority>
+  </url>
 </urlset>

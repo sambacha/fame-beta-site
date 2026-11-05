@@ -1,7 +1,7 @@
 ---
 title: "Liquidity Ratios & Emission Caps: Inside FAME's Risk Engine"
 description: "How the FAME Protocol computes liquid backing per slot, why the 1,000,000,000 FAME emission cap is an immutable constant rather than a vote, and a five-step institutional due-diligence checklist for fair-launch DeFi."
-canonical: https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/liquidity-ratios-emission-caps
+canonical: https://fairmeme3.github.io/fame-program/journal/liquidity-ratios-emission-caps
 date_published: 2026-10-30
 date_modified: 2026-10-30
 read_minutes: 7
@@ -127,7 +127,7 @@ Cap reference: total supply can never exceed 1,000,000,000 FAME (immutable progr
 
 ---
 
-Canonical HTML version: https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/liquidity-ratios-emission-caps
-Site index for agents: https://sambacha.github.io/fame-beta-site/fame-beta-site/llms.txt
+Canonical HTML version: https://fairmeme3.github.io/fame-program/journal/liquidity-ratios-emission-caps
+Site index for agents: https://fairmeme3.github.io/fame-program/llms.txt
 
 Figures marked illustrative are deterministic design parameters, not live chain state. Verify from primary sources: program accounts and the public invariant repository.

@@ -1,7 +1,7 @@
 ---
 title: "Formal Verification Is DeFi's Missing Safety Layer | FAME Protocol"
 description: "Why audits sample code while formal verification proves it: the invariants FAME machine-checks on every deploy, the honest limits of verified DeFi, and the five questions to ask any protocol claiming mathematical guarantees."
-canonical: https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/formal-verification-defi-safety
+canonical: https://fairmeme3.github.io/fame-program/journal/formal-verification-defi-safety
 date_published: 2026-10-22
 date_modified: 2026-10-22
 read_minutes: 6
@@ -102,7 +102,7 @@ Solvency at the 1.20 floor, the 1,000,000,000 FAME cap conservation, parley conc
 
 ---
 
-Canonical HTML version: https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/formal-verification-defi-safety
-Site index for agents: https://sambacha.github.io/fame-beta-site/fame-beta-site/llms.txt
+Canonical HTML version: https://fairmeme3.github.io/fame-program/journal/formal-verification-defi-safety
+Site index for agents: https://fairmeme3.github.io/fame-program/llms.txt
 
 Figures marked illustrative are deterministic design parameters, not live chain state. Verify from primary sources: program accounts and the public invariant repository.
