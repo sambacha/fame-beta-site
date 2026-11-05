@@ -45,6 +45,10 @@ URL after it lands.
 ### Cloudflare Pages (direct upload)
 
 - Workflow: `.github/workflows/deploy-cloudflare.yml` (push to `main` or manual).
+- Script option (same gates, run locally): `bun run deploy:cloudflare` —
+  lint → typecheck → domain-root build → verify → smoke → `wrangler pages
+  deploy out`. Requires `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` in
+  the environment; `bun run deploy:cloudflare:dry-run` runs the gates only.
 - Builds at the domain root with `NEXT_PUBLIC_SITE_URL=https://fame-protocol.pages.dev`
   (edit the workflow env when attaching a custom domain), verifies, smokes, then
   `wrangler pages deploy out --project-name=fame-protocol`.
