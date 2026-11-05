@@ -21,10 +21,8 @@ import { articleToMarkdown, homeToMarkdown } from "../src/lib/markdown"
 const ROOT = resolve(import.meta.dir, "..")
 const PUBLIC = join(ROOT, "public")
 
-const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://fairmeme3.github.io/fame-program"
-).replace(/\/+$/, "")
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+const SITE_URL = (process.env.VITE_SITE_URL ?? "https://fairmeme3.github.io").replace(/\/+$/, "")
+const BASE_PATH = (process.env.VITE_BASE_PATH ?? "").replace(/\/+$/, "")
 
 const url = (path: string) => `${SITE_URL}${BASE_PATH}${path}`
 
@@ -68,7 +66,7 @@ const llms = [
   `- [llms-full.txt](${url("/llms-full.txt")}): all of the above content in one plain-text file.`,
   `- [Sitemap](${url("/sitemap.xml")}): every canonical URL.`,
   `- [robots.txt](${url("/robots.txt")}): crawl policy (allow all).`,
-  `- [Repository](${process.env.NEXT_PUBLIC_REPO_URL ?? "https://github.com/Fairmeme3/fame-program"}): program source, invariant set, audit folder.`,
+  `- [Repository](${process.env.VITE_REPO_URL ?? "https://github.com/Fairmeme3/fame-program"}): program source, invariant set, audit folder.`,
   "",
 ].join("\n")
 writeFileSync(join(PUBLIC, "llms.txt"), llms)
@@ -94,4 +92,34 @@ writeFileSync(join(PUBLIC, "llms-full.txt"), full)
 
 console.info(
   `[sources] wrote sources/home.md, sources/analysis/${ARTICLES.map((a) => a.slug).join(", ")}.md, llms.txt, llms-full.txt`,
+)
+
+/* ── sitemap.xml — every canonical URL (replaces the old app/sitemap.ts) ──── */
+const today = new Date().toISOString().slice(0, 10)
+const sitemapUrls = [
+  { loc: `${url("/")}`, priority: "1.0" },
+  { loc: `${url("/journal")}`, priority: "0.8" },
+  ...ARTICLES.map((a) => ({ loc: url(`/journal/${a.slug}`), priority: "0.7" })),
+]
+const sitemap = [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  ...sitemapUrls.flatMap((entry) => [
+    "  <url>",
+    `    <loc>${entry.loc}</loc>`,
+    `    <lastmod>${today}</lastmod>`,
+    `    <priority>${entry.priority}</priority>`,
+    "  </url>",
+  ]),
+  "</urlset>",
+  "",
+].join("\n")
+writeFileSync(join(PUBLIC, "sitemap.xml"), sitemap)
+
+/* ── robots.txt — allow all, point at the sitemap (replaces app/robots.ts) ── */
+const robots = ["User-agent: *", "Allow: /", "", `Sitemap: ${url("/sitemap.xml")}`, ""].join("\n")
+writeFileSync(join(PUBLIC, "robots.txt"), robots)
+
+console.info(
+  `[sources] wrote sources/*, llms.txt, llms-full.txt, sitemap.xml (${sitemapUrls.length} URLs), robots.txt`,
 )

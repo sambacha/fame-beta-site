@@ -1,6 +1,6 @@
-import Link from "next/link"
-import type { ReactNode } from "react"
+import type { ComponentChild } from "preact"
 import { withBasePath } from "@/lib/seo"
+import { Link } from "@/router"
 
 /**
  * Shared primitives for the journal analysis pages — the Oxide layer:
@@ -8,7 +8,7 @@ import { withBasePath } from "@/lib/seo"
  * All classes resolve through the @oxide/design-system bridge in globals.css.
  */
 
-export function Eyebrow({ children }: { children: ReactNode }) {
+export function Eyebrow({ children }: { children: ComponentChild }) {
   return <p className="text-mono-xs text-content-accent">{children}</p>
 }
 

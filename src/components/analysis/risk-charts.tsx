@@ -1,6 +1,4 @@
-"use client"
-
-import { AreaChart, BarChart, LineChart } from "@tremor/react"
+import { AreaChart, BarChart, LineChart } from "@/components/charts"
 import {
   BACKING_COMPARISON,
   buildBreakerEpisode,
@@ -10,8 +8,8 @@ import {
 
 /**
  * Chart suite for "Inside FAME's risk engine: liquidity ratios & emission caps".
- * Series colors resolve through the Tremor alias layer in globals.css — every
- * shade lands on an Oxide OKLCH step. Gradients are off: flat fills only.
+ * Series colors resolve through the palette alias layer in src/index.css —
+ * every shade lands on an Oxide OKLCH step. Gradients are off: flat fills only.
  */
 
 const RATIO_SERIES = buildLiquidityRatioSeries()
@@ -57,21 +55,17 @@ export function BreakerEpisodeChart() {
       autoMinValue
       yAxisWidth={56}
       className="h-56"
-      customTooltip={({ active, payload, label }) => {
-        if (!active || !payload?.length) return null
-        const point = EPISODE.find((p) => String(p.slot) === String(label))
-        return (
-          <div className="rounded-tremor-default border border-stroke-default bg-surface-raise p-3 shadow-menu text-xs">
-            <p className="font-mono text-content-tertiary">slot {label}</p>
-            <p className="mt-1 font-mono text-content-default tabular-nums">
-              ratio {ratioFormatter(Number(payload[0].value))}
-            </p>
-            <p className="mt-1 font-mono text-content-notice">
-              {point?.deposits === "halted" ? "■ deposits + emissions halted" : "□ deposits open"}
-            </p>
-          </div>
-        )
-      }}
+      renderTooltip={({ point, label }) => (
+        <div className="rounded-tremor-default border border-stroke-default bg-surface-raise p-3 shadow-menu text-xs">
+          <p className="font-mono text-content-tertiary">slot {label}</p>
+          <p className="mt-1 font-mono text-content-default tabular-nums">
+            ratio {ratioFormatter(Number(point.ratio))}
+          </p>
+          <p className="mt-1 font-mono text-content-notice">
+            {point.deposits === "halted" ? "■ deposits + emissions halted" : "□ deposits open"}
+          </p>
+        </div>
+      )}
     />
   )
 }
@@ -85,7 +79,6 @@ export function EmissionChart() {
       colors={["teal", "gray", "sky", "emerald"]}
       valueFormatter={(value) => `${value}M`}
       showLegend
-      showGradient={false}
       yAxisWidth={56}
       className="h-64"
     />
@@ -100,7 +93,6 @@ export function BackingComparisonChart() {
       categories={["multiple"]}
       colors={["emerald"]}
       valueFormatter={(value) => `${value.toFixed(2)}×`}
-      showLegend={false}
       yAxisWidth={56}
       className="h-48"
     />

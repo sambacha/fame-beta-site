@@ -1,6 +1,5 @@
-"use client"
-
-import { type RefObject, useEffect, useRef, useState } from "react"
+import type { Ref } from "preact"
+import { useEffect, useRef, useState } from "preact/hooks"
 
 /**
  * IntersectionObserver hook — drives lazy hydration and pauses live feeds
@@ -9,7 +8,7 @@ import { type RefObject, useEffect, useRef, useState } from "react"
 export function useInView<T extends Element>(
   rootMargin = "160px",
 ): {
-  ref: RefObject<T | null>
+  ref: Ref<T>
   inView: boolean
 } {
   const ref = useRef<T>(null)

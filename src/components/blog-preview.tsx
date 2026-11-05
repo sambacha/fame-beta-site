@@ -1,5 +1,5 @@
-import Link from "next/link"
 import { ARTICLES } from "@/lib/blog-content"
+import { Link } from "@/router"
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {

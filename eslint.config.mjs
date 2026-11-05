@@ -1,22 +1,48 @@
-import nextCoreWebVitals from "eslint-config-next/core-web-vitals"
-import nextTypescript from "eslint-config-next/typescript"
+import eslint from "@eslint/js"
+import tseslint from "typescript-eslint"
+import reactHooks from "eslint-plugin-react-hooks"
 import globals from "globals"
-import { dirname } from "path"
-import { fileURLToPath } from "url"
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
 
 /**
- * Strict ESLint policy for the FAME Protocol landing page.
- * Biome (see biome.json) enforces formatting + a second strict pass;
- * this config keeps the framework-aware rules and blocks all escapes hatches.
+ * Strict ESLint policy for the FAME Protocol landing page (Preact + Vite).
+ * Biome (see biome.json) enforces formatting + a second strict pass; this
+ * config keeps type-aware TS rules and the hooks rules, and blocks all
+ * escape hatches.
  */
-const eslintConfig = [
-  ...nextCoreWebVitals,
-  ...nextTypescript,
+export default tseslint.config(
   {
+    ignores: [
+      "node_modules/**",
+      "dist/**",
+      "out/**",
+      "build/**",
+      ".next/**",
+      "tool-results/**",
+      "skills/**",
+      "download/**",
+      "upload/**",
+    ],
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    // Deployment/verification tooling — same strict bar as first-party app code.
+    files: ["scripts/**/*.{mjs,mts}"],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
+  {
+    files: ["**/*.{ts,tsx}"],
+    plugins: { "react-hooks": reactHooks },
+    languageOptions: {
+      globals: { ...globals.browser },
+    },
     rules: {
+      // Hooks correctness (works for preact hooks too)
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "error",
+
       // TypeScript — no escape hatches
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unused-vars": [
@@ -26,16 +52,6 @@ const eslintConfig = [
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/ban-ts-comment": "error",
       "@typescript-eslint/prefer-as-const": "error",
-
-      // React correctness
-      "react-hooks/exhaustive-deps": "error",
-      "react/no-unescaped-entities": "error",
-      "react/display-name": "error",
-      "react-compiler/react-compiler": "off",
-
-      // Next.js
-      "@next/next/no-img-element": "error",
-      "@next/next/no-html-link-for-pages": "error",
 
       // General JavaScript
       "prefer-const": "error",
@@ -47,38 +63,4 @@ const eslintConfig = [
       "no-var": "error",
     },
   },
-  {
-    // Deployment/verification tooling — same strict bar as first-party app code.
-    files: ["scripts/**/*.mjs"],
-    languageOptions: {
-      ecmaVersion: 2024,
-      sourceType: "module",
-      globals: { ...globals.node },
-    },
-  },
-  {
-    // Scaffold-shipped primitives (shadcn/ui + hooks) — relax the React
-    // Compiler-era rules that third-party skeleton code trips on; strict
-    // enforcement applies to all first-party code above.
-    files: ["src/components/ui/**", "src/hooks/**"],
-    rules: {
-      "react-hooks/purity": "off",
-      "react-hooks/set-state-in-effect": "off",
-      "@typescript-eslint/no-unused-vars": "off",
-    },
-  },
-  {
-    ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-      "skills/**",
-      "download/**",
-      "upload/**",
-    ],
-  },
-]
-
-export default eslintConfig
+)

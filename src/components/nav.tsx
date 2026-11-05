@@ -1,9 +1,5 @@
-"use client"
-
-import { Tabs } from "@base-ui-components/react/tabs"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { usePersona } from "@/components/persona-context"
+import { Link, useRoute } from "@/router"
 
 const NAV_LINKS = [
   { href: "/#stability", label: "Stability" },
@@ -13,13 +9,13 @@ const NAV_LINKS = [
 
 /**
  * Sticky Oxide-style top bar. Hover shifts text one tier up (never recolors
- * to accent); the Institutional/Retail switch is a Base-UI Tabs primitive with
- * the accent-wash selected state.
+ * to accent); the Institutional/Retail switch is a segmented control with
+ * the accent-wash selected state (data-selected drives the styling).
  */
 export function Nav() {
   const { persona, setPersona } = usePersona()
-  const pathname = usePathname()
-  const isHome = pathname === "/"
+  const route = useRoute()
+  const isHome = route.name === "home"
 
   return (
     <header className="sticky top-0 z-50 border-b border-stroke-default bg-surface-default/85 backdrop-bar pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
@@ -27,7 +23,7 @@ export function Nav() {
         <Link
           href="/"
           className="flex min-h-11 items-center gap-2 font-mono text-lg font-medium tracking-tight text-content-raise"
-          aria-label="FAME Protocol home"
+          ariaLabel="FAME Protocol home"
         >
           FAME<span className="text-content-accent">{"//"}</span>
         </Link>
@@ -40,7 +36,7 @@ export function Nav() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    aria-current={active ? "page" : undefined}
+                    ariaCurrent={active ? "page" : undefined}
                     className={`inline-flex min-h-11 items-center rounded-tremor-default px-3 font-mono text-sm transition-colors hover:text-content-default ${
                       active ? "text-content-accent" : "text-content-secondary"
                     }`}
@@ -54,30 +50,24 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Tabs.Root
-            value={persona}
-            onValueChange={(value) => {
-              if (value === "institutional" || value === "retail") setPersona(value)
-            }}
+          <div
+            role="group"
+            aria-label="Content perspective"
+            className="grid auto-cols-fr grid-flow-col rounded-tremor-default border border-stroke-default bg-surface-secondary p-1"
           >
-            <Tabs.List
-              aria-label="Content perspective"
-              className="grid auto-cols-fr grid-flow-col rounded-tremor-default border border-stroke-default bg-surface-secondary p-1"
-            >
-              <Tabs.Tab
-                value="institutional"
+            {(["institutional", "retail"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={persona === value}
+                data-selected={persona === value ? "true" : undefined}
+                onClick={() => setPersona(value)}
                 className="min-h-11 cursor-pointer rounded-sm px-3 text-mono-xs text-content-secondary transition-colors hover:text-content-default data-[selected]:bg-surface-accent data-[selected]:text-content-accent sm:px-4"
               >
-                Institutional
-              </Tabs.Tab>
-              <Tabs.Tab
-                value="retail"
-                className="min-h-11 cursor-pointer rounded-sm px-3 text-mono-xs text-content-secondary transition-colors hover:text-content-default data-[selected]:bg-surface-accent data-[selected]:text-content-accent sm:px-4"
-              >
-                Retail
-              </Tabs.Tab>
-            </Tabs.List>
-          </Tabs.Root>
+                {value === "institutional" ? "Institutional" : "Retail"}
+              </button>
+            ))}
+          </div>
 
           <Link
             href="/#access"

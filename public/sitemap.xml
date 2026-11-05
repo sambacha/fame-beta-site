@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://fairmeme3.github.io/fame-program/</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://fairmeme3.github.io/fame-program/journal</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fairmeme3.github.io/fame-program/journal/liquidity-ratios-emission-caps</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://fairmeme3.github.io/fame-program/journal/formal-verification-defi-safety</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>0.7</priority>
+  </url>
+</urlset>

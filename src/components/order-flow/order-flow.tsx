@@ -1,12 +1,9 @@
-"use client"
-
-import { Dialog } from "@base-ui-components/react/dialog"
-import { Field } from "@base-ui-components/react/field"
-import { Radio } from "@base-ui-components/react/radio"
-import { RadioGroup } from "@base-ui-components/react/radio-group"
-import { Select } from "@base-ui-components/react/select"
-import { AreaChart, Metric } from "@tremor/react"
-import { memo, useEffect, useMemo, useRef, useState } from "react"
+import type { ComponentChild, JSX } from "preact"
+import { memo, useEffect, useMemo, useRef, useState } from "preact/compat"
+import { AreaChart, Metric } from "@/components/charts"
+import { Dialog } from "@/components/ui/dialog"
+import { Radio, RadioGroup } from "@/components/ui/radio-group"
+import { Select } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useReducedMotion } from "@/lib/hooks"
 import {
@@ -55,7 +52,7 @@ function FlowNode({
   step: string
   title: string
   status: NodeStatus
-  children: React.ReactNode
+  children: ComponentChild
 }) {
   return (
     <li
@@ -97,7 +94,7 @@ function FlowEdge({ active }: { active: boolean }) {
   )
 }
 
-/** Node A — Base-UI Select over the primary trade. Memoised item renderer. */
+/** Node A — listbox Select over the primary trade. Memoised item renderer. */
 const TradeSelect = memo(function TradeSelect({
   tradeAId,
   onSelect,
@@ -106,77 +103,61 @@ const TradeSelect = memo(function TradeSelect({
   onSelect: (id: string, label: string) => void
 }) {
   const items = useMemo(
-    () => TRADE_A_OPTIONS.map((trade) => ({ value: trade.id, label: trade.label, trade })),
-    [],
+    () =>
+      TRADE_A_OPTIONS.map((trade) => ({
+        value: trade.id,
+        node: (
+          <span className="grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2.5 text-left">
+            <span className="block">
+              <span className="block text-sm font-medium text-content-default">{trade.label}</span>
+              <span className="block font-mono text-[11px] text-content-tertiary">
+                {trade.strategy} · {RISK_LABELS[trade.risk]} risk
+              </span>
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="font-mono text-xs text-content-accent">{trade.apr}%</span>
+              {trade.id === tradeAId && (
+                <span className="text-content-accent" aria-hidden="true">
+                  ✓
+                </span>
+              )}
+            </span>
+          </span>
+        ),
+      })),
+    [tradeAId],
   )
   const selected = findTrade(tradeAId)
 
   return (
-    <Select.Root
+    <Select
       items={items}
       value={tradeAId}
       onValueChange={(value) => {
-        if (typeof value === "string") {
-          const match = TRADE_A_OPTIONS.find((trade) => trade.id === value)
-          if (match) onSelect(match.id, match.label)
-        }
+        const match = TRADE_A_OPTIONS.find((trade) => trade.id === value)
+        if (match) onSelect(match.id, match.label)
       }}
+      ariaLabel="Primary trade — leg one"
+      id="trade-a-select"
+      triggerClass="inline-flex min-h-11 w-full items-center justify-between gap-3 rounded-tremor-default border border-stroke-raise bg-surface-secondary px-4 py-2.5 text-left transition-colors data-[popup-open]:border-stroke-accent-secondary"
+      popupClass="scroll-area max-h-96 overflow-y-auto rounded-tremor-default border border-stroke-default bg-surface-raise p-1 shadow-menu"
+      itemClass="rounded-sm"
     >
-      <Select.Trigger
-        aria-label="Primary trade — leg one"
-        className="inline-flex min-h-11 w-full items-center justify-between gap-3 rounded-tremor-default border border-stroke-raise bg-surface-secondary px-4 py-2.5 text-left transition-colors data-[popup-open]:border-stroke-accent-secondary"
-      >
-        <Select.Value>
-          <span className="block truncate">
-            {selected ? (
-              <span className="flex items-baseline justify-between gap-3">
-                <span className="text-sm font-medium text-content-default">{selected.label}</span>
-                <span className="font-mono text-xs text-content-accent">{selected.apr}% APR</span>
-              </span>
-            ) : (
-              <span className="text-sm text-content-secondary">Select primary trade…</span>
-            )}
+      <span className="block truncate">
+        {selected ? (
+          <span className="flex items-baseline justify-between gap-3">
+            <span className="text-sm font-medium text-content-default">{selected.label}</span>
+            <span className="font-mono text-xs text-content-accent">{selected.apr}% APR</span>
           </span>
-        </Select.Value>
-        <Select.Icon className="text-content-tertiary">
-          <span aria-hidden="true">▾</span>
-        </Select.Icon>
-      </Select.Trigger>
-      <Select.Portal>
-        <Select.Positioner sideOffset={6} className="z-60 outline-none">
-          <Select.Popup className="scroll-area max-h-96 min-w-80 overflow-y-auto rounded-tremor-default border border-stroke-default bg-surface-raise p-1 shadow-menu">
-            {TRADE_A_OPTIONS.map((trade) => (
-              <Select.Item
-                key={trade.id}
-                value={trade.id}
-                className="grid cursor-pointer grid-cols-[1fr_auto] items-center gap-3 rounded-sm px-3 py-2.5 text-left outline-none data-[highlighted]:bg-surface-accent"
-              >
-                <Select.ItemText>
-                  <span className="block">
-                    <span className="block text-sm font-medium text-content-default">
-                      {trade.label}
-                    </span>
-                    <span className="block font-mono text-[11px] text-content-tertiary">
-                      {trade.strategy} · {RISK_LABELS[trade.risk]} risk
-                    </span>
-                  </span>
-                </Select.ItemText>
-                <span className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-content-accent">{trade.apr}%</span>
-                  <Select.ItemIndicator className="text-content-accent">
-                    <span aria-hidden="true">✓</span>
-                  </Select.ItemIndicator>
-                </span>
-              </Select.Item>
-            ))}
-          </Select.Popup>
-        </Select.Positioner>
-      </Select.Portal>
-    </Select.Root>
+        ) : (
+          <span className="text-sm text-content-secondary">Select primary trade…</span>
+        )}
+      </span>
+    </Select>
   )
 })
 
-/** Node B — Base-UI RadioGroup over compatible second legs. */
+/** Node B — RadioGroup over compatible second legs. */
 const LegRadio = memo(function LegRadio({
   leg,
   name,
@@ -187,21 +168,17 @@ const LegRadio = memo(function LegRadio({
   disabled: boolean
 }) {
   return (
-    <Radio.Root
+    <Radio
       value={leg.id}
       disabled={disabled}
-      className="grid min-h-11 cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-3 rounded-tremor-default border border-stroke-default bg-surface-secondary p-3 text-left transition-colors hover:border-stroke-raise data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40 data-[checked]:border-stroke-accent-secondary data-[checked]:bg-surface-accent/40"
+      className="group grid min-h-11 cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-3 rounded-tremor-default border border-stroke-default bg-surface-secondary p-3 text-left transition-colors hover:border-stroke-raise data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40 data-[checked]:border-stroke-accent-secondary data-[checked]:bg-surface-accent/40"
     >
-      <Radio.Indicator
-        className="flex h-4 w-4 items-center justify-center rounded-full border border-stroke-raise data-[checked]:border-stroke-accent-secondary"
-        render={(props, state) => (
-          <span {...props}>
-            {state.checked ? (
-              <span className="block h-2 w-2 rounded-full bg-content-accent" />
-            ) : null}
-          </span>
-        )}
-      />
+      <span
+        aria-hidden="true"
+        className="flex h-4 w-4 items-center justify-center rounded-full border border-stroke-raise group-data-[checked]:border-stroke-accent-secondary"
+      >
+        <RadioDot />
+      </span>
       <span>
         <span className="block text-sm font-medium text-content-default">{leg.label}</span>
         <span className="block font-mono text-[11px] text-content-tertiary">
@@ -212,9 +189,19 @@ const LegRadio = memo(function LegRadio({
         <span className="block text-content-accent">{leg.apr}%</span>
         <span className="block text-content-tertiary">ρ {leg.correlation.toFixed(2)}</span>
       </span>
-    </Radio.Root>
+    </Radio>
   )
 })
+
+/** The dot inside the radio indicator — needs the parent's data-checked state. */
+function RadioDot() {
+  return (
+    <span
+      aria-hidden="true"
+      className="hidden h-2 w-2 rounded-full bg-content-accent group-data-[checked]:block"
+    />
+  )
+}
 
 /* ── Parametric Order Configuration ────────────────────────────────────────
    Amount (input) → dependent second leg (read-only) → payoff projection.
@@ -235,14 +222,15 @@ const AmountField = memo(function AmountField({
   onChange: (raw: string) => void
 }) {
   return (
-    <Field.Root name="amount" className="flex flex-col gap-1.5">
-      <Field.Label className="text-sm font-medium text-content-secondary">
+    <div className="flex flex-col gap-1.5">
+      <label for="amount-input" className="text-sm font-medium text-content-secondary">
         Amount (USD){" "}
         <span aria-hidden="true" className="text-content-error">
           *
         </span>
-      </Field.Label>
-      <Field.Control
+      </label>
+      <input
+        id="amount-input"
         type="number"
         inputMode="decimal"
         required
@@ -251,7 +239,9 @@ const AmountField = memo(function AmountField({
         max={maxUsd}
         step={1000}
         value={raw}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
+        onInput={(event: JSX.TargetedEvent<HTMLInputElement>) =>
+          onChange((event.target as HTMLInputElement).value)
+        }
         placeholder="50,000"
         aria-invalid={error ? "true" : undefined}
         aria-errormessage={error ? "amount-error" : undefined}
@@ -272,7 +262,7 @@ const AmountField = memo(function AmountField({
           {formatCompactUsd(MIN_TICKET_USD)}
         </p>
       )}
-    </Field.Root>
+    </div>
   )
 })
 
@@ -289,11 +279,12 @@ const LegTwoField = memo(function LegTwoField({
       ? `${legLabel} — awaiting ticket amount`
       : "Select a second leg to populate"
   return (
-    <Field.Root name="legTwo" className="flex flex-col gap-1.5">
-      <Field.Label className="text-sm font-medium text-content-secondary">
+    <div className="flex flex-col gap-1.5">
+      <label for="leg-two-input" className="text-sm font-medium text-content-secondary">
         Secondary leg (auto-populated)
-      </Field.Label>
-      <Field.Control
+      </label>
+      <input
+        id="leg-two-input"
         readOnly
         value={value}
         aria-readonly="true"
@@ -304,7 +295,7 @@ const LegTwoField = memo(function LegTwoField({
           ? `${legTwo.ratio} · offsets the primary leg's residual exposure`
           : "Sizing = ticket × (1 − |ρ|) — the residual exposure offset"}
       </p>
-    </Field.Root>
+    </div>
   )
 })
 
@@ -375,11 +366,10 @@ const PayoffChart = memo(function PayoffChart({
         index="move"
         categories={["Parley P&L", "Upper 1σ", "Lower 1σ"]}
         colors={["emerald", "teal", "rose"]}
-        valueFormatter={(value: number) => formatSignedUsd(value)}
+        valueFormatter={(value) => formatSignedUsd(value)}
         className="mt-3 h-64"
         autoMinValue
         showAnimation={!reducedMotion}
-        showGradient={false}
         showLegend
         curveType="natural"
       />
@@ -488,6 +478,7 @@ const SummaryPanel = memo(function SummaryPanel({
   onRoute: () => void
 }) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const closeDialog = () => setDialogOpen(false)
 
   if (phase === "SUBMITTED") {
     return (
@@ -558,41 +549,43 @@ const SummaryPanel = memo(function SummaryPanel({
         </div>
       </dl>
 
-      <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
-        <Dialog.Trigger
-          data-pulse={phase === "PARLEY_READY"}
-          className="mt-5 inline-flex min-h-11 items-center justify-center rounded-tremor-default bg-surface-accent-inverse px-5 text-mono-sm text-content-inverse transition-colors hover:bg-surface-accent-inverse-hover"
-        >
-          Confirm parametric order
-        </Dialog.Trigger>
-        <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 z-50 bg-surface-scrim" />
-          <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-tremor-default border border-stroke-default bg-surface-raise p-6 shadow-menu">
-            <Dialog.Title className="text-lg font-medium text-content-default">
-              Route parametric order
-            </Dialog.Title>
-            <Dialog.Description className="mt-2 text-sm text-content-secondary">
-              {legs} · {combinedApr.toFixed(1)}% combined APR · ρ {correlation.toFixed(2)}. The
-              margin engine will pre-clear both legs before the next slot.
-            </Dialog.Description>
-            <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <Dialog.Close className="inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-raise px-4 text-sm text-content-secondary transition-colors hover:text-content-default">
-                Back
-              </Dialog.Close>
-              <button
-                type="button"
-                onClick={() => {
-                  onRoute()
-                  setDialogOpen(false)
-                }}
-                className="inline-flex min-h-11 items-center rounded-tremor-default bg-surface-accent-inverse px-5 text-mono-sm text-content-inverse transition-colors hover:bg-surface-accent-inverse-hover"
-              >
-                Route order
-              </button>
-            </div>
-          </Dialog.Popup>
-        </Dialog.Portal>
-      </Dialog.Root>
+      <Dialog open={dialogOpen} onClose={closeDialog}>
+        <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-tremor-default border border-stroke-default bg-surface-raise p-6 shadow-menu outline-none">
+          <h3 className="text-lg font-medium text-content-default">Route parametric order</h3>
+          <p className="mt-2 text-sm text-content-secondary">
+            {legs} · {combinedApr.toFixed(1)}% combined APR · ρ {correlation.toFixed(2)}. The margin
+            engine will pre-clear both legs before the next slot.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <button
+              type="button"
+              onClick={closeDialog}
+              className="inline-flex min-h-11 items-center rounded-tremor-default border border-stroke-raise px-4 text-sm text-content-secondary transition-colors hover:text-content-default"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onRoute()
+                closeDialog()
+              }}
+              className="inline-flex min-h-11 items-center rounded-tremor-default bg-surface-accent-inverse px-5 text-mono-sm text-content-inverse transition-colors hover:bg-surface-accent-inverse-hover"
+            >
+              Route order
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
+      <button
+        type="button"
+        data-pulse={phase === "PARLEY_READY"}
+        onClick={() => setDialogOpen(true)}
+        className="mt-5 inline-flex min-h-11 items-center justify-center rounded-tremor-default bg-surface-accent-inverse px-5 text-mono-sm text-content-inverse transition-colors hover:bg-surface-accent-inverse-hover"
+      >
+        Confirm parametric order
+      </button>
     </div>
   )
 })
@@ -698,14 +691,12 @@ export function OrderFlowBuilder() {
               : "Unlocks after the primary trade is selected."}
           </p>
           <RadioGroup
-            aria-label="Second leg selection"
-            aria-invalid={state.phase === "INVALID_PAIR" ? "true" : undefined}
+            ariaLabel="Second leg selection"
+            ariaInvalid={state.phase === "INVALID_PAIR"}
             value={state.legId ?? null}
             onValueChange={(value) => {
-              if (typeof value === "string") {
-                const match = legs.find((legOption) => legOption.id === value)
-                if (match) handleNodeSelect("legB", { id: match.id, label: match.label })
-              }
+              const match = legs.find((legOption) => legOption.id === value)
+              if (match) handleNodeSelect("legB", { id: match.id, label: match.label })
             }}
             className="grid gap-2"
           >

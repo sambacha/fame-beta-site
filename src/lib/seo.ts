@@ -1,15 +1,24 @@
 /**
  * Central SEO constants + JSON-LD builders (schema.org @graph).
- * Organization and SoftwareApplication live in the root layout;
- * BlogPosting entries are injected alongside them for the two journal pieces.
+ * Organization and SoftwareApplication live in the app shell; BlogPosting
+ * entries are injected alongside them for the two journal pieces.
  *
- * Deployment-awareness: NEXT_PUBLIC_SITE_URL sets the canonical origin at
- * build time (GitHub Pages project site vs. Cloudflare Pages root), and
- * NEXT_PUBLIC_BASE_PATH prefixes public-file paths so OG images resolve
- * under https://<owner>.github.io/<repo>/ subpath hosting.
+ * Deployment-awareness: VITE_SITE_URL sets the canonical origin at build
+ * time (GitHub Pages project site vs. Cloudflare Pages root), and
+ * VITE_BASE_PATH prefixes public-file paths so OG images resolve under
+ * https://<owner>.github.io/<repo>/ subpath hosting. Bun post-build scripts
+ * (emit-shells.mts) supply the same values via process.env.
  */
 
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+/** Read a build-time env var: Vite's import.meta.env first, then process.env (Bun scripts). */
+function envValue(key: string): string | undefined {
+  const vite = (import.meta as { env?: Record<string, string | undefined> }).env
+  if (vite && key in vite) return vite[key]
+  if (typeof process !== "undefined") return process.env[key]
+  return undefined
+}
+
+const BASE_PATH = (envValue("VITE_BASE_PATH") ?? "").replace(/\/+$/, "")
 
 /** Prefix a public-file path with the deployment base path (no-op at domain root). */
 export function withBasePath(path: string): string {
@@ -18,7 +27,7 @@ export function withBasePath(path: string): string {
 
 export const SITE = {
   name: "FAME Protocol",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://fairmeme3.github.io/fame-program",
+  url: envValue("VITE_SITE_URL") ?? "https://fairmeme3.github.io",
   tagline: "One curve. No insiders.",
   description:
     "FAME Protocol is formally verified parametric parlay infrastructure: two-leg structured trades with on-chain liquidity ratios, a hard emission cap and slot-level settlement proofs.",

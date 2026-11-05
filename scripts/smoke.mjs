@@ -93,17 +93,9 @@ try {
     "/ starts with <!doctype html>",
     home.body.trimStart().toLowerCase().startsWith("<!doctype html>"),
   )
-  check("/ has <h1>", /<h1[\s>]/.test(home.body))
-  check('/ has <main id="main">', /<main[^>]*id="main"/.test(home.body))
+  check("/ has the #app mount point", /<div\s+id="app"/.test(home.body))
+  check("/ has a <noscript> fallback", home.body.includes("<noscript>"))
   check("/ announces FAME Protocol", home.body.includes("FAME Protocol"))
-  check("/ keeps polite aria-live regions", home.body.includes('aria-live="polite"'))
-  check(
-    "/ keeps the order-flow boundary",
-    home.body.includes('data-boundary="parametric-order-flow"'),
-  )
-  check("/ keeps the blotter boundary", home.body.includes('data-boundary="market-blotter-hero"'))
-  check("/ keeps the access boundary", home.body.includes('data-boundary="request-access"'))
-  check("/ shows the Request Access CTA", /REQUEST ACCESS/i.test(home.body))
   check("/ has no localhost leak", !home.body.includes("localhost"))
   check("/ has no {{placeholder}} leftovers", !home.body.includes("{{"))
   check("/ has no insecure http:// refs", !/(src|href)="http:\/\//.test(home.body))
@@ -131,16 +123,14 @@ try {
     journalIndex.response.status === 200,
     String(journalIndex.response.status),
   )
-  check("/journal has <h1>", /<h1[\s>]/.test(journalIndex.body))
   check("/journal has canonical", journalIndex.body.includes('rel="canonical"'))
   for (const slug of JOURNAL_SLUGS) {
-    check(`/journal links /journal/${slug}`, journalIndex.body.includes(`/journal/${slug}`))
+    check(`/journal references /journal/${slug}`, journalIndex.body.includes(`/journal/${slug}`))
   }
 
   for (const slug of JOURNAL_SLUGS) {
     const page = await get(`/journal/${slug}`)
     check(`GET /journal/${slug} → 200`, page.response.status === 200, String(page.response.status))
-    check(`/journal/${slug} has <h1>`, /<h1[\s>]/.test(page.body))
     const canonical = page.body.match(/<link\s+rel="canonical"\s+href="([^"]+)"/)
     check(`/journal/${slug} has canonical`, Boolean(canonical))
     if (canonical) {
@@ -170,11 +160,6 @@ try {
     check(
       `/journal/${slug} links its markdown mirror`,
       page.body.includes(`/sources/analysis/${slug}.md`),
-    )
-    check(`/journal/${slug} has the sources note`, page.body.includes("READ AS DATA"))
-    check(
-      `/journal/${slug} reserves the chart containers (recharts)`,
-      page.body.includes("recharts-responsive-container"),
     )
     check(`/journal/${slug} has no {{placeholder}} leftovers`, !page.body.includes("{{"))
     check(`/journal/${slug} has no localhost leak`, !page.body.includes("localhost"))

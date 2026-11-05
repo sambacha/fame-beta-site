@@ -1,5 +1,5 @@
-import Link from "next/link"
 import { SITE, withBasePath } from "@/lib/seo"
+import { Link } from "@/router"
 
 /**
  * Footer — sticks to the bottom of short viewports (mt-auto inside the

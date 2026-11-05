@@ -1,6 +1,6 @@
 name: Deploy to Cloudflare Pages
 
-# Ships the static export to Cloudflare Pages via Wrangler direct upload —
+# Ships the static SPA to Cloudflare Pages via Wrangler direct upload —
 # again only after every quality gate passes. The build runs WITHOUT a base
 # path (Cloudflare Pages serves at the domain root) and with the pages.dev
 # canonical origin.
@@ -20,11 +20,11 @@ concurrency:
 env:
   # Canonical origin used for <link rel=canonical>, OG URLs and sitemap.xml.
   # Replace with your custom domain when one is attached to the Pages project.
-  NEXT_PUBLIC_SITE_URL: https://fame-protocol.pages.dev
+  VITE_SITE_URL: https://fame-protocol.pages.dev
 
 jobs:
   deploy:
-    name: Gates → static export → verify → smoke → wrangler deploy
+    name: Gates → static SPA build → verify → smoke → wrangler deploy
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.wrangler.outputs.alias || steps.wrangler.outputs.url }}
@@ -51,16 +51,14 @@ jobs:
       - name: Typecheck — no escape hatches
         run: bun run typecheck
 
-      - name: Static export build (domain root)
-        env:
-          STATIC_EXPORT: "1"
-        run: bun run build
+      - name: Static SPA build (domain root)
+        run: bun run build:root
 
       - name: Verify compiled artifacts
-        run: node scripts/verify-artifacts.mjs --root out --site-url "$NEXT_PUBLIC_SITE_URL"
+        run: node scripts/verify-artifacts.mjs --root dist --site-url "$VITE_SITE_URL"
 
       - name: Smoke tests (Pages routing)
-        run: node scripts/smoke.mjs --root out --site-url "$NEXT_PUBLIC_SITE_URL"
+        run: node scripts/smoke.mjs --root dist --site-url "$VITE_SITE_URL"
 
       - name: Deploy to Cloudflare Pages
         id: wrangler
@@ -68,7 +66,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy out --project-name=fame-protocol --branch main
+          command: pages deploy dist --project-name=fame-protocol --branch main
 
   post-deploy-smoke:
     name: Post-deploy smoke (live URL)

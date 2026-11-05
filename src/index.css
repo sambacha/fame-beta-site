@@ -1,21 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* ── Tremor UI: make Tailwind 4 scan the component library ──────────────── */
-@source "../../node_modules/@tremor/react/dist";
-
-/* ── Tremor color safelist ──────────────────────────────────────────────────
-   Tremor builds its palette classes dynamically ("stroke-${color}-${shade}"),
-   which the scanner can never see. Safelist the exact shade set its
-   lib/theme.js emits (charts: stroke/fill-500 · fills: bg-500 · badge text:
-   text-600 · badge ring: ring-500). All shades resolve through the alias
-   @theme below, so every generated utility stays on the Oxide scales. */
-@source inline("bg-{emerald,rose,amber,sky,teal,gray}-500");
-@source inline("text-{emerald,rose,amber,sky,teal,gray}-600");
-@source inline("stroke-{emerald,rose,amber,sky,teal,gray}-500");
-@source inline("fill-{emerald,rose,amber,sky,teal,gray}-500");
-@source inline("ring-{emerald,rose,amber,sky,teal,gray}-500");
-
 /* ══════════════════════════════════════════════════════════════════════════
    FAME // Oxide design system — canonical integration.
 
@@ -182,12 +167,13 @@
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  /* Fonts — next/font variables (Inter / JetBrains Mono) standing in for
-     SuisseIntl / GT America Mono, which are unlicensed for this repo.
-     Declared after the package import so they win the cascade. */
-  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
+  /* Fonts — self-hosted variable fonts (@fontsource-variable, imported in
+     main.tsx with font-display: swap) standing in for SuisseIntl /
+     GT America Mono, which are unlicensed for this repo. Declared after the
+     package import so they win the cascade. */
+  --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont,
     Helvetica, Arial, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo,
     monospace;
 
   /* Tremor radii/shadows mapped onto Oxide geometry + elevation */

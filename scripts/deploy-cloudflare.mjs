@@ -4,7 +4,7 @@
  *
  * Runs the exact same quality gates as CI (lint → typecheck → static export
  * at domain-root coordinates → artifact verification → smoke tests) and only
- * then hands the verified `out/` artifact to `wrangler pages deploy`.
+ * then hands the verified `dist/` artifact to `wrangler pages deploy`.
  *
  * Usage:
  *   node scripts/deploy-cloudflare.mjs            # gates → deploy → live smoke
@@ -57,21 +57,21 @@ if (!DRY_RUN && (!env.CLOUDFLARE_API_TOKEN || !env.CLOUDFLARE_ACCOUNT_ID)) {
 run("Lint (ESLint + Biome)", "bun", ["run", "lint"])
 run("Typecheck", "bun", ["run", "typecheck"])
 step(`Static export build (domain root, canonical ${SITE_URL})`)
-rmSync("out", { recursive: true, force: true })
-run("Build", "bun", ["run", "build"], {
-  env: { NEXT_PUBLIC_SITE_URL: SITE_URL },
+rmSync("dist", { recursive: true, force: true })
+run("Build", "bun", ["run", "build:root"], {
+  env: { VITE_SITE_URL: SITE_URL },
 })
 run("Verify compiled artifacts", "node", [
   "scripts/verify-artifacts.mjs",
   "--root",
-  "out",
+  "dist",
   "--site-url",
   SITE_URL,
 ])
 run("Smoke tests (Pages routing)", "node", [
   "scripts/smoke.mjs",
   "--root",
-  "out",
+  "dist",
   "--site-url",
   SITE_URL,
 ])
@@ -80,10 +80,10 @@ if (DRY_RUN) {
   console.info("\n[deploy:cf] DRY-RUN PASSED — gates green, artifact verified, nothing deployed")
   exit(0)
 }
-if (!existsSync("out/index.html")) die("out/index.html missing after build — refusing to deploy")
+if (!existsSync("dist/index.html")) die("dist/index.html missing after build — refusing to deploy")
 
 /* ── Deploy the verified artifact ─────────────────────────────────────────── */
-step(`Wrangler pages deploy out → project "${PROJECT}"`)
+step(`Wrangler pages deploy dist → project "${PROJECT}"`)
 const deploy = spawnSync(
   "npx",
   [
@@ -91,7 +91,7 @@ const deploy = spawnSync(
     `wrangler@${WRANGLER_VERSION}`,
     "pages",
     "deploy",
-    "out",
+    "dist",
     "--project-name",
     PROJECT,
     "--branch",

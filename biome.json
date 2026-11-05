@@ -2,12 +2,13 @@
   "$schema": "https://biomejs.dev/schemas/2.6.5/schema.json",
   "files": {
     "includes": [
-      "src/app/**",
+      "src/**",
       "src/lib/**",
       "src/components/**",
       "scripts/**",
       "!src/components/ui/**",
-      "!src/app/globals.css"
+      "!src/app/globals.css",
+      "!src/index.css"
     ]
   },
   "linter": {
@@ -40,7 +41,13 @@
         "noDoubleEquals": "error",
         "noConsole": {
           "level": "error",
-          "options": { "allow": ["warn", "error", "info"] }
+          "options": {
+            "allow": [
+              "warn",
+              "error",
+              "info"
+            ]
+          }
         },
         "noArrayIndexKey": "warn",
         "noCommentText": "error",
@@ -80,6 +87,8 @@
       "trailingCommas": "all",
       "arrowParentheses": "always"
     },
-    "globals": ["Bun"]
+    "globals": [
+      "Bun"
+    ]
   }
 }

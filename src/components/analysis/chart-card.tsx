@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ComponentChild } from "preact"
 
 /** Hairline panel wrapping a chart: Oxide title conventions + figure/figcaption a11y. */
 export function ChartCard({
@@ -10,7 +10,7 @@ export function ChartCard({
   title: string
   description?: string
   footnote: string
-  children: ReactNode
+  children: ComponentChild
 }) {
   return (
     <figure className="rounded-tremor-default border border-stroke-default bg-surface-raise p-5 shadow-border-small">

@@ -1,6 +1,4 @@
-"use client"
-
-import { Tooltip } from "@base-ui-components/react/tooltip"
+import { useEffect, useRef, useState } from "preact/hooks"
 import {
   AreaChart,
   Badge,
@@ -9,16 +7,10 @@ import {
   CategoryBar,
   Metric,
   SparkAreaChart,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
   Tracker,
-} from "@tremor/react"
-import { useEffect, useRef, useState } from "react"
+} from "@/components/charts"
 import { usePersona } from "@/components/persona-context"
+import { Tooltip } from "@/components/ui/tooltip"
 import { useInView, useReducedMotion } from "@/lib/hooks"
 import {
   type BlotterRow,
@@ -32,38 +24,12 @@ import {
   tickBlotter,
 } from "@/lib/market-data"
 
-const STATUS_COLORS = {
-  SETTLED: "emerald",
-  PROOF: "sky",
-  ROUTING: "amber",
-} as const
-
 const UPTIME_SLOTS = buildUptimeSlots()
 
 type Flash = { id: string; dir: "up" | "down" } | null
 
 function MetricHint({ label, hint }: { label: string; hint: string }) {
-  return (
-    <Tooltip.Provider>
-      <Tooltip.Root>
-        <Tooltip.Trigger
-          aria-label={`About ${label}`}
-          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-tremor-default text-content-tertiary transition-colors hover:text-content-default"
-        >
-          <span aria-hidden="true" className="text-sm">
-            ⓘ
-          </span>
-        </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Positioner sideOffset={8} className="z-60">
-            <Tooltip.Popup className="max-w-64 rounded-tremor-default border border-stroke-default bg-surface-raised p-3 text-xs leading-relaxed text-content-secondary shadow-tremor-dropdown">
-              {hint}
-            </Tooltip.Popup>
-          </Tooltip.Positioner>
-        </Tooltip.Portal>
-      </Tooltip.Root>
-    </Tooltip.Provider>
-  )
+  return <Tooltip hint={hint} ariaLabel={`About ${label}`} />
 }
 
 function Spark({ data }: { data: number[] }) {
@@ -76,15 +42,14 @@ function Spark({ data }: { data: number[] }) {
       categories={["v"]}
       colors={[rising ? "emerald" : "rose"]}
       className="h-8 w-24"
-      showGradient={false}
     />
   )
 }
 
 /**
- * Hero = live market blotter (Tremor UI). Streams simulated parley fills,
- * pauses when the tab is hidden or the section scrolls off-screen, and
- * suppresses row flashes under prefers-reduced-motion.
+ * Hero = live market blotter. Streams simulated parley fills, pauses when
+ * the tab is hidden or the section scrolls off-screen, and suppresses row
+ * flashes under prefers-reduced-motion.
  */
 export function HeroBlotter() {
   const { persona } = usePersona()
@@ -263,10 +228,7 @@ export function HeroBlotter() {
                   USD millions · institutional vs retail sleeves
                 </p>
               </div>
-              <Badge
-                color="emerald"
-                className="!bg-content-accent/10 !text-content-accent !ring-content-accent/20"
-              >
+              <Badge className="!bg-content-accent/10 !text-content-accent !ring-content-accent/20">
                 HEALTHY
               </Badge>
             </div>
@@ -278,7 +240,6 @@ export function HeroBlotter() {
               valueFormatter={(value) => `$${value}M`}
               className="mt-4 h-44"
               showLegend
-              showGradient={false}
             />
           </Card>
 
@@ -290,7 +251,6 @@ export function HeroBlotter() {
               values={LIQUIDITY_MIX}
               colors={["emerald", "teal", "gray"]}
               className="mt-4"
-              showAnimation={false}
             />
             <ul className="mt-4 space-y-2 font-mono text-xs text-content-secondary">
               <li className="flex items-center gap-2">
@@ -329,10 +289,7 @@ export function HeroBlotter() {
                   LIVE
                 </span>
               ) : (
-                <Badge
-                  color="gray"
-                  className="!bg-content-tertiary/10 !text-content-secondary !ring-stroke-default"
-                >
+                <Badge className="!bg-content-tertiary/10 !text-content-secondary !ring-stroke-default">
                   PAUSED
                 </Badge>
               )}
@@ -349,26 +306,21 @@ export function HeroBlotter() {
             screen.
           </p>
           <div className="overflow-x-auto">
-            <Table className="[&_table]:w-full">
-              <TableHead>
-                <TableRow className="!border-stroke-default">
-                  <TableRowCells institutional={institutional} />
-                </TableRow>
-              </TableHead>
-              <TableBody>
+            <table className="w-full">
+              <thead>
+                <TableRowCells institutional={institutional} />
+              </thead>
+              <tbody>
                 {rows.map((row) => (
-                  <TableRow key={row.id} className="!border-stroke-default">
+                  <tr key={row.id} className="border-b border-stroke-default last:border-b-0">
                     {institutional && (
                       <>
-                        <TableCell className="!px-5 font-mono text-xs text-content-tertiary">
-                          {row.time}
-                        </TableCell>
-                        <TableCell className="!px-5 font-mono text-sm text-content-default">
+                        <td className="px-5 font-mono text-xs text-content-tertiary">{row.time}</td>
+                        <td className="px-5 font-mono text-sm text-content-default">
                           {row.market}
-                        </TableCell>
-                        <TableCell className="!px-5">
+                        </td>
+                        <td className="px-5">
                           <Badge
-                            color={row.side === "BUY" ? "emerald" : "rose"}
                             className={`!rounded-tremor-small font-mono ${
                               row.side === "BUY"
                                 ? "!bg-content-accent/10 !text-content-accent !ring-content-accent/20"
@@ -377,41 +329,38 @@ export function HeroBlotter() {
                           >
                             {row.side}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="!px-5 text-right font-mono text-sm tabular-nums text-content-secondary">
+                        </td>
+                        <td className="px-5 text-right font-mono text-sm tabular-nums text-content-secondary">
                           {formatCompactUsd(row.notionalUsd)}
-                        </TableCell>
-                        <TableCell className="!px-5 text-right font-mono text-sm tabular-nums text-content-secondary">
+                        </td>
+                        <td className="px-5 text-right font-mono text-sm tabular-nums text-content-secondary">
                           {row.correlation.toFixed(2)}
-                        </TableCell>
+                        </td>
                       </>
                     )}
                     {!institutional && (
-                      <TableCell className="!px-5 font-mono text-sm text-content-default">
-                        {row.market}
-                      </TableCell>
+                      <td className="px-5 font-mono text-sm text-content-default">{row.market}</td>
                     )}
-                    <TableCell
-                      className={`!px-5 text-right font-mono text-sm tabular-nums text-content-default ${
+                    <td
+                      className={`px-5 text-right font-mono text-sm tabular-nums text-content-default ${
                         flash?.id === row.id ? (flash.dir === "up" ? "flash-up" : "flash-down") : ""
                       }`}
                     >
                       {row.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell className="!px-5 text-right font-mono text-sm tabular-nums">
+                    </td>
+                    <td className="px-5 text-right font-mono text-sm tabular-nums">
                       <span
                         className={row.deltaPct >= 0 ? "text-content-accent" : "text-content-error"}
                       >
                         {formatPct(row.deltaPct)}
                       </span>
-                    </TableCell>
-                    <TableCell className="!px-5">
+                    </td>
+                    <td className="px-5">
                       <Spark data={row.spark} />
-                    </TableCell>
+                    </td>
                     {institutional && (
-                      <TableCell className="!px-5">
+                      <td className="px-5">
                         <Badge
-                          color={STATUS_COLORS[row.status]}
                           className={`!rounded-tremor-small font-mono ${
                             row.status === "SETTLED"
                               ? "!bg-content-accent/10 !text-content-accent !ring-content-accent/20"
@@ -422,12 +371,12 @@ export function HeroBlotter() {
                         >
                           {row.status}
                         </Badge>
-                      </TableCell>
+                      </td>
                     )}
-                  </TableRow>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         </Card>
       </div>
@@ -440,15 +389,16 @@ function TableRowCells({ institutional }: { institutional: boolean }) {
     ? ["Time", "Market", "Side", "Notional", "ρ", "Price", "Δ", "Trend", "Status"]
     : ["Market", "Price", "Δ 24h", "Trend"]
   return (
-    <>
+    <tr className="!border-stroke-default">
       {heads.map((head) => (
-        <TableHeaderCell
+        <th
           key={head}
-          className="!bg-surface-secondary !px-5 !py-3 font-mono !text-[11px] uppercase tracking-widest !text-content-tertiary"
+          scope="col"
+          className="bg-surface-secondary px-5 py-3 font-mono text-[11px] font-medium uppercase tracking-widest text-content-tertiary"
         >
           {head}
-        </TableHeaderCell>
+        </th>
       ))}
-    </>
+    </tr>
   )
 }

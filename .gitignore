@@ -13,13 +13,9 @@ node_modules
 # testing
 /coverage
 
-# next.js
-/.next/
-/.next-export/
+# build output
+/dist/
 /out/
-
-# production
-/build
 
 # misc
 .DS_Store
@@ -40,7 +36,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 local-*
 .claude
 .z-ai-config

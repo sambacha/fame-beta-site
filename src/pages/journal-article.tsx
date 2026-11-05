@@ -1,5 +1,3 @@
-import type { Metadata } from "next"
-import { notFound } from "next/navigation"
 import { ChartCard } from "@/components/analysis/chart-card"
 import {
   ArticleCta,
@@ -21,56 +19,10 @@ import {
   InvariantCoverageChart,
   InvariantRatchetChart,
 } from "@/components/analysis/verification-charts"
+import { useHead } from "@/head"
 import { PEER_COMPARISON, PROOF_PIPELINE, PROOF_SCOPE } from "@/lib/analysis-data"
-import { ARTICLES, findArticle } from "@/lib/blog-content"
-import { buildArticleLd, buildBreadcrumbLd, buildFaqLd, SITE, withBasePath } from "@/lib/seo"
-
-// Static export: only the slugs below are pre-rendered; everything else 404s.
-export const dynamicParams = false
-
-export function generateStaticParams() {
-  return ARTICLES.map((article) => ({ slug: article.slug }))
-}
-
-type PageProps = { params: Promise<{ slug: string }> }
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const article = findArticle(slug)
-  if (!article) return {}
-  const path = `/journal/${article.slug}`
-  const published = new Date(`${article.datePublished}T00:00:00Z`)
-  const modified = new Date(`${article.dateModified}T00:00:00Z`)
-  return {
-    title: article.seoTitle,
-    description: article.seoDescription,
-    keywords: article.keywords,
-    alternates: {
-      canonical: path,
-      types: {
-        "text/markdown": withBasePath(`/sources/analysis/${article.slug}.md`),
-      },
-    },
-    openGraph: {
-      type: "article",
-      url: path,
-      siteName: SITE.name,
-      title: article.seoTitle,
-      description: article.seoDescription,
-      publishedTime: published.toISOString(),
-      modifiedTime: modified.toISOString(),
-      authors: [SITE.name],
-      tags: article.keywords,
-      images: [{ url: SITE.ogImage, width: 1200, height: 630, alt: article.title }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: article.seoTitle,
-      description: article.seoDescription,
-      images: [SITE.ogImage],
-    },
-  }
-}
+import { ARTICLES, type Article, findArticle } from "@/lib/blog-content"
+import { buildArticleLd, buildBreadcrumbLd, buildFaqLd, withBasePath } from "@/lib/seo"
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -231,11 +183,19 @@ const COMPOSITION = {
 
 type CompositionKey = keyof typeof COMPOSITION
 
-export default async function JournalArticlePage({ params }: PageProps) {
-  const { slug } = await params
-  const article = findArticle(slug)
-  if (!article) notFound()
+export function JournalArticlePage({ slug }: { slug: string }) {
+  const article: Article | undefined = findArticle(slug)
 
+  // Unknown slugs render the branded 404 (the static shells only exist for
+  // known slugs, but a bad client-side navigation still lands somewhere sane).
+  if (!article) {
+    return <NotFoundFallback slug={slug} />
+  }
+  return <ArticleView article={article} />
+}
+
+function ArticleView({ article }: { article: Article }) {
+  const slug = article.slug
   const composition = COMPOSITION[slug as CompositionKey]
   const currentIndex = ARTICLES.findIndex((a) => a.slug === slug)
   const next = ARTICLES[(currentIndex + 1) % ARTICLES.length]
@@ -251,9 +211,22 @@ export default async function JournalArticlePage({ params }: PageProps) {
     "@graph": [articleLd, breadcrumbLd, faqLd],
   })
 
+  useHead({
+    title: `${article.seoTitle} | FAME Protocol`,
+    description: article.seoDescription,
+    canonicalPath: `/journal/${article.slug}`,
+    ogType: "article",
+    ogTitle: article.seoTitle,
+    ogDescription: article.seoDescription,
+    publishedTime: new Date(`${article.datePublished}T00:00:00Z`).toISOString(),
+    modifiedTime: new Date(`${article.dateModified}T00:00:00Z`).toISOString(),
+    tags: article.keywords,
+    jsonLd,
+    markdownAlternate: withBasePath(`/sources/analysis/${article.slug}.md`),
+  })
+
   return (
     <main id="main" className="border-b border-stroke-default">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
         <div className="mx-auto max-w-3xl">
           <Breadcrumb
@@ -374,6 +347,36 @@ export default async function JournalArticlePage({ params }: PageProps) {
           <ArticleCta next={{ title: next.title, href: `/journal/${next.slug}` }} />
         </div>
       </div>
+    </main>
+  )
+}
+
+/** Client-side navigation to an unknown slug — same brand voice as 404.html. */
+function NotFoundFallback({ slug }: { slug: string }) {
+  useHead({
+    title: "Article not found | FAME Protocol",
+    description: "The requested research article does not exist.",
+    canonicalPath: "/journal",
+    ogType: "website",
+  })
+  return (
+    <main id="main" className="border-b border-stroke-default">
+      <section className="mx-auto flex min-h-[70dvh] w-full max-w-3xl flex-col items-start justify-center px-4 py-24">
+        <p className="text-mono-xs text-content-notice">HTTP 404 · ARTICLE NOT FOUND</p>
+        <h1 className="mt-4 text-4xl font-medium tracking-tight text-content-raise">
+          No article “{slug}”.
+        </h1>
+        <p className="mt-4 max-w-md text-content-secondary">
+          The requested research piece is not part of the journal. The index below lists everything
+          that is.
+        </p>
+        <a
+          href="/journal"
+          className="mt-8 inline-flex min-h-11 items-center rounded-tremor-default bg-surface-accent-inverse px-6 text-mono-sm text-content-inverse transition-colors hover:bg-surface-accent-inverse-hover"
+        >
+          ← Back to the journal
+        </a>
+      </section>
     </main>
   )
 }

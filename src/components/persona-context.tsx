@@ -1,6 +1,5 @@
-"use client"
-
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import type { ComponentChildren } from "preact"
+import { createContext, useCallback, useContext, useMemo, useState } from "preact/compat"
 
 export type Persona = "institutional" | "retail"
 
@@ -13,22 +12,20 @@ const STORAGE_KEY = "fame-persona"
 
 const PersonaContext = createContext<PersonaContextValue | null>(null)
 
-export function PersonaProvider({ children }: { children: React.ReactNode }) {
-  const [persona, setPersonaState] = useState<Persona>("institutional")
-  const [announcement, setAnnouncement] = useState("")
+function initialPersona(): Persona {
+  // Client-only app: reading storage at first render is safe (no SSR drift).
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY)
+    if (stored === "retail" || stored === "institutional") return stored
+  } catch {
+    // Storage unavailable (private mode) — keep the default view.
+  }
+  return "institutional"
+}
 
-  // Restore the persisted perspective after hydration (no SSR mismatch).
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY)
-      if (stored === "retail" || stored === "institutional") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- post-hydration storage restore is the sanctioned way to avoid SSR mismatch
-        setPersonaState(stored)
-      }
-    } catch {
-      // Storage unavailable (private mode) — keep the default view.
-    }
-  }, [])
+export function PersonaProvider({ children }: { children: ComponentChildren }) {
+  const [persona, setPersonaState] = useState<Persona>(initialPersona)
+  const [announcement, setAnnouncement] = useState("")
 
   const setPersona = useCallback((next: Persona) => {
     setPersonaState(next)

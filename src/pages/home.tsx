@@ -5,13 +5,27 @@ import { OrderFlowSection } from "@/components/order-flow/order-flow-section"
 import { ProblemSolution } from "@/components/problem-solution"
 import { SectionBoundary } from "@/components/section-boundary"
 import { StabilityAnchor } from "@/components/stability-anchor"
+import { useHead } from "@/head"
+import { ARTICLES } from "@/lib/blog-content"
+import { buildArticleLd, buildLdGraph, SITE, withBasePath } from "@/lib/seo"
 
 /**
- * FAME Protocol landing page — Oxide-inspired conversion surface.
- * Every block is wrapped in its own retry-armed error boundary so a crash
- * in one module degrades locally instead of taking down the page.
+ * Landing page — Oxide-inspired conversion surface. Every block is wrapped
+ * in its own retry-armed error boundary so a crash in one module degrades
+ * locally instead of taking down the page.
  */
-export default function Home() {
+export function HomePage() {
+  const articleLd = ARTICLES.map((article) => buildArticleLd(article))
+
+  useHead({
+    title: "FAME Protocol — Formally Verified Parametric Parlay Infrastructure",
+    description: SITE.description,
+    canonicalPath: "/",
+    ogType: "website",
+    jsonLd: buildLdGraph(articleLd),
+    markdownAlternate: withBasePath("/sources/home.md"),
+  })
+
   return (
     <main id="main">
       <SectionBoundary sectionName="market-blotter-hero">

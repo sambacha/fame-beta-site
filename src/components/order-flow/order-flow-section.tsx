@@ -1,6 +1,4 @@
-"use client"
-
-import dynamic from "next/dynamic"
+import { lazy, Suspense } from "preact/compat"
 import { useInView } from "@/lib/hooks"
 import { ORDER_FLOW_SUMMARY } from "@/lib/site-content"
 
@@ -34,11 +32,11 @@ function OrderFlowSkeleton() {
   )
 }
 
-// Mirrors a Suspense-lazy boundary: the ~heavy builder (Tremor + Base-UI
-// tree) is code-split and only hydrated once the section is in view.
-const OrderFlowBuilder = dynamic(() => import("./order-flow").then((mod) => mod.OrderFlowBuilder), {
-  ssr: false,
-  loading: () => <OrderFlowSkeleton />,
+// Mirrors a Suspense boundary: the heavy builder is code-split and only
+// mounted once the section is in view (client-side only — no hydration).
+const OrderFlowBuilder = lazy(async () => {
+  const mod = await import("./order-flow")
+  return { default: mod.OrderFlowBuilder }
 })
 
 export function OrderFlowSection() {
@@ -57,7 +55,13 @@ export function OrderFlowSection() {
         <p className="mt-4 max-w-2xl text-content-secondary">{ORDER_FLOW_SUMMARY.lede}</p>
 
         <div ref={ref} className="mt-10">
-          {inView ? <OrderFlowBuilder /> : <OrderFlowSkeleton />}
+          {inView ? (
+            <Suspense fallback={<OrderFlowSkeleton />}>
+              <OrderFlowBuilder />
+            </Suspense>
+          ) : (
+            <OrderFlowSkeleton />
+          )}
         </div>
 
         <p className="mt-4 font-mono text-[11px] text-content-tertiary">

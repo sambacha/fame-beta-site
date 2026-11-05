@@ -1,91 +1,63 @@
 name: Deploy to GitHub Pages
 
-# Ships the static export to the GitHub Pages project site
-# (https://<owner>.github.io/<repo>/) — but only after every quality gate
-# passes: lint → typecheck → build → artifact verification → smoke tests.
-# Requires Settings → Pages → Build and deployment → Source: "GitHub Actions".
+# Ships the static SPA to the GitHub Pages project site
+# (https://<owner>.github.io/<repo>/) by publishing the verified `dist/` tree
+# to the `gh-pages` branch with the `gh-pages` npm package — the same script
+# developers run locally as `bun run deploy:pages`. Every quality gate runs
+# first: lint → typecheck → build → artifact verification → smoke tests.
+#
+# One-time setup: Settings → Pages → Build and deployment → Source:
+# "Deploy from a branch" → branch `gh-pages`, folder `/ (root)`.
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: github-pages
   cancel-in-progress: true
 
+env:
+  SITE_URL: https://fairmeme3.github.io/fame-program
+  BASE_PATH: /fame-program
+
 jobs:
-  build:
-    name: Gates → static export → verify → smoke → package
+  deploy:
+    name: Gates → gh-pages publish
     runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.url.outputs.url }}
     steps:
-      - name: Check out repository
+      - name: Check out repository (persist credentials for the push)
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Set up Node (verification scripts)
+      - name: Set up Node (verification scripts + gh-pages)
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Compute GitHub Pages coordinates
-        run: |
-          OWNER="${GITHUB_REPOSITORY_OWNER}"
-          REPO="${GITHUB_REPOSITORY#*/}"
-          echo "SITE_URL=https://${OWNER}.github.io/${REPO}" >> "$GITHUB_ENV"
-          echo "BASE_PATH=/${REPO}" >> "$GITHUB_ENV"
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Lint — ESLint + Biome, strict
-        run: bun run lint
-
-      - name: Typecheck — no escape hatches
-        run: bun run typecheck
-
-      - name: Static export build (Pages coordinates)
+      - name: Gates + publish (gh-pages package, same as bun run deploy:pages)
+        run: node scripts/deploy-pages.mjs
         env:
-          STATIC_EXPORT: "1"
-          NEXT_PUBLIC_SITE_URL: ${{ env.SITE_URL }}
-          NEXT_PUBLIC_BASE_PATH: ${{ env.BASE_PATH }}
-        run: bun run build
+          VITE_SITE_URL: ${{ env.SITE_URL }}
+          VITE_BASE_PATH: ${{ env.BASE_PATH }}
 
-      - name: Verify compiled artifacts
-        run: node scripts/verify-artifacts.mjs --root out --base "$BASE_PATH" --site-url "$SITE_URL"
-
-      - name: Smoke tests (subpath mount, Pages routing)
-        run: node scripts/smoke.mjs --root out --mount "$BASE_PATH" --site-url "$SITE_URL"
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: out
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      url: ${{ steps.deployment.outputs.page_url }}
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy artifact
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Record deployment URL
+        id: url
+        run: echo "url=${SITE_URL}/" >> "$GITHUB_OUTPUT"
 
   post-deploy-smoke:
     name: Post-deploy smoke (live URL)

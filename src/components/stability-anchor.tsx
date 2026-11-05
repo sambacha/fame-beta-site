@@ -1,8 +1,6 @@
-"use client"
-
-import { Tooltip } from "@base-ui-components/react/tooltip"
-import { Card, ProgressBar, Tracker } from "@tremor/react"
+import { Card, ProgressBar, Tracker } from "@/components/charts"
 import { usePersona } from "@/components/persona-context"
+import { Tooltip } from "@/components/ui/tooltip"
 import { buildUptimeSlots } from "@/lib/market-data"
 import { INSTITUTIONAL_STATS, RETAIL_STATS, STABILITY_INTRO } from "@/lib/site-content"
 
@@ -40,25 +38,11 @@ export function StabilityAnchor() {
             <Card key={stat.term} className="!bg-surface-raise !p-5 !ring-stroke-default">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-mono-xs text-content-tertiary">{stat.term}</p>
-                <Tooltip.Provider>
-                  <Tooltip.Root>
-                    <Tooltip.Trigger
-                      aria-label={`What does ${stat.term} mean?`}
-                      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-tremor-default text-content-tertiary transition-colors hover:text-content-default"
-                    >
-                      <span aria-hidden="true" className="text-sm">
-                        ⓘ
-                      </span>
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Positioner sideOffset={8} className="z-60">
-                        <Tooltip.Popup className="max-w-72 rounded-tremor-default border border-stroke-default bg-surface-raise p-3 text-xs leading-relaxed text-content-secondary shadow-menu">
-                          {stat.definition}
-                        </Tooltip.Popup>
-                      </Tooltip.Positioner>
-                    </Tooltip.Portal>
-                  </Tooltip.Root>
-                </Tooltip.Provider>
+                <Tooltip
+                  hint={stat.definition}
+                  ariaLabel={`What does ${stat.term} mean?`}
+                  popupClass="max-w-72"
+                />
               </div>
               <p className="mt-3 font-mono text-4xl font-medium tracking-tight text-content-accent tabular-nums">
                 {stat.value}
@@ -81,8 +65,7 @@ export function StabilityAnchor() {
             <ProgressBar
               value={STABILITY_INTRO.ratioCard.progressValue}
               color="emerald"
-              className="mt-4 [&>_div:nth-child(2)_div]:!bg-content-accent"
-              showAnimation={false}
+              className="mt-4 [&>div:nth-child(2)>div]:!bg-content-accent"
             />
             <p className="mt-3 font-mono text-xs text-content-secondary">
               {STABILITY_INTRO.ratioCard.footnote}

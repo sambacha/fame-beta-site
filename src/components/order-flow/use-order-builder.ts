@@ -1,6 +1,4 @@
-"use client"
-
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react"
+import { useCallback, useEffect, useMemo, useReducer, useState } from "preact/hooks"
 import {
   findLeg,
   findTrade,

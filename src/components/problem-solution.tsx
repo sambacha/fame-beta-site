@@ -1,8 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import { usePersona } from "@/components/persona-context"
 import { NARRATIVES } from "@/lib/site-content"
+import { Link } from "@/router"
 
 /**
  * Problem / Solution narrative — the conversion core of the page. Copy lives

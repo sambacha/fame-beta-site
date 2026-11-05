@@ -331,3 +331,60 @@ build issues".
    85 smoke assertions, nothing deployed). `bun outdated` now lists only
    typescript 7.0.2 as available-but-blocked, with the failure mode on
    record. Local rebuild of the whole site: proven, every gate.
+
+---
+
+## 2.0.0 — Next.js removed: pure-Preact client-side SPA + gh-pages deploy
+
+Polya cycle for "refactor the entire project to remove Next.js, use only
+Preact, client-side only, and create a GitHub Pages deploy script using the
+`gh-pages` npm package".
+
+1. **Understand** — the Next.js layer contributed: routing/SSG (8 static
+   pages), per-route metadata + JSON-LD, next/font (display=swap +
+   size-adjusted fallbacks), the App Router file conventions, and the
+   `out/` static export consumed by both deploy paths. The UI ran on
+   Base-UI (Select/Dialog/Field/Radio/Tabs/Tooltip), Tremor+recharts
+   (charts/table/metric/tracker) and Radix toast — all React-ecosystem
+   packages. The CSS bridge (Oxide tokens → Tailwind namespaces) and every
+   utility class were framework-independent and fully reusable.
+2. **Plan** — (a) runtime: `preact` only; hand-rolled pure-Preact
+   replacements for every React-library dependency, emitting the same
+   `data-*` state hooks (`data-popup-open`, `data-highlighted`,
+   `data-checked`, `data-disabled`, `data-status`, `data-pulse`) so the
+   existing class layer carries over 1:1; charts become a hand-rolled SVG
+   suite (area/line/bar/spark/category/tracker/progress/metric) on the
+   alias palette. (b) tooling: Vite + @preact/preset-vite + @tailwindcss/vite;
+   self-hosted @fontsource-variable fonts keep `font-display: swap` and the
+   CSP `'self'`-only. (c) routing: tiny history-API router + per-route
+   static shells (baked title/description/canonical/OG/JSON-LD/markdown
+   alternates by `scripts/emit-shells.mts`) so deep links stay HTTP 200 on
+   Pages without relying on 404-fallback semantics; 404.html keeps a
+   no-JS "SLOT NOT FOUND" fallback inside #app plus noindex. (d) SEO data:
+   sitemap.xml/robots.txt move into the sources generator (VITE_ env
+   convention replaces NEXT_PUBLIC_*; VITE_SITE_URL is the bare origin).
+   (e) deploys: new `scripts/deploy-pages.mjs` — gates → `gh-pages.publish
+   ("dist", {dotfiles: true})`; Pages source must be "Deploy from a branch:
+   gh-pages"; deploy-pages.yml now runs that same script (contents: write);
+   Cloudflare path switched to `build:root` + `dist`.
+3. **Carry out** — deleted: next/react/react-dom/@base-ui-components/react/
+   @radix-ui/react-toast/@tremor/react/@types/react*/eslint-config-next/
+   postcss.config.mjs/next.config.ts/src/app (globals.css → src/index.css,
+   minus the Tremor scanner lines). Added: preact, vite, @preact/preset-vite,
+   @tailwindcss/vite, gh-pages, @fontsource-variable/{inter,jetbrains-mono},
+   typescript-eslint + eslint-plugin-react-hooks (flat config rewritten).
+   47 modules transformed per build; dist/ = 32 files.
+4. **Look back** — gates from the final tree: lint ✅ (5 non-fatal Biome
+   warnings), typecheck ✅, `build:pages` ✅, verify:artifacts ✅
+   (32 files, **422.1 KB gz total — js 46.9 KB gz, css 13.8 KB gz**; the
+   1.2.0 build was 955.5 KB / 426 KB js — a 2.3× total / 9× JS reduction),
+   smoke ✅ (73 assertions), `deploy:pages:dry-run` ✅,
+   `deploy:cloudflare:dry-run` ✅. Browser verification of the Pages-mount
+   artifact: home renders (6 boundaries, 9 hero SVGs, live blotter), persona
+   toggle persists, order-flow golden path end-to-end (keyboard-driven
+   Select: Enter→↓×2→Enter commits; $22K hedge = 25,000 × (1−0.12);
+   PARLEY_READY pulse; confirm dialog; ticket FAME-72CG; reset), rejection
+   path toasts + REJECTED node, client-side routing + popstate, fresh
+   deep-link loads (baked titles, 3-4 chart SVGs per article), branded 404,
+   Escape/outside-click dismissal, mobile 390×844 and desktop 1440×900
+   screenshots match the Oxide design language.

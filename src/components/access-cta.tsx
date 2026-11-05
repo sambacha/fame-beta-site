@@ -1,9 +1,7 @@
-"use client"
-
-import { Field } from "@base-ui-components/react/field"
-import { Select } from "@base-ui-components/react/select"
-import { type FormEvent, useRef, useState } from "react"
+import type { JSX } from "preact"
+import { useRef, useState } from "preact/hooks"
 import { usePersona } from "@/components/persona-context"
+import { Select } from "@/components/ui/select"
 import { ACCESS_CONTENT } from "@/lib/site-content"
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -33,17 +31,20 @@ const CONTROL_CLASS =
   "min-h-11 w-full rounded-tremor-default border border-stroke-raise bg-surface-secondary px-3 py-2.5 text-base text-content-default placeholder:text-content-tertiary focus:outline-none focus:border-stroke-accent-secondary"
 
 /**
- * Request Access — the conversion CTA. Base-UI Field primitives give us
- * blur-time validation with automatic aria-invalid + aria-describedby wiring,
- * 16px controls prevent iOS focus zoom, and a polite live region announces
- * both error and success outcomes (WCAG 2.1 AA 3.3.1 / 4.1.3).
+ * Request Access — the conversion CTA. Blur-time validation with manual
+ * aria-invalid + aria-describedby wiring (replacing Base-UI Field), 16px
+ * controls prevent iOS focus zoom, and a polite live region announces both
+ * error and success outcomes (WCAG 2.1 AA 3.3.1 / 4.1.3).
  */
 export function AccessCTA() {
   const { persona } = usePersona()
   const [values, setValues] = useState<FormValues>(INITIAL_VALUES)
   const [status, setStatus] = useState<"idle" | "error" | "success">("idle")
+  const [touched, setTouched] = useState<{ name: boolean; email: boolean }>({
+    name: false,
+    email: false,
+  })
   const [announcement, setAnnouncement] = useState("")
-  const formRef = useRef<HTMLFormElement>(null)
   const nameRef = useRef<HTMLInputElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
 
@@ -54,10 +55,12 @@ export function AccessCTA() {
   const institutional = persona === "institutional"
   const points = institutional ? ACCESS_CONTENT.institutional : ACCESS_CONTENT.retail
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const nameError = validateName(values.name)
+  const emailError = validateEmail(values.email)
+
+  const handleSubmit = (event: JSX.TargetedEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const nameError = validateName(values.name)
-    const emailError = validateEmail(values.email)
+    setTouched({ name: true, email: true })
     if (nameError || emailError) {
       setStatus("error")
       const summary = [nameError, emailError].filter(Boolean).join(" ")
@@ -75,6 +78,7 @@ export function AccessCTA() {
   const resetForm = () => {
     setValues(INITIAL_VALUES)
     setStatus("idle")
+    setTouched({ name: false, email: false })
     setAnnouncement("")
   }
 
@@ -128,113 +132,106 @@ export function AccessCTA() {
               </button>
             </div>
           ) : (
-            <form ref={formRef} noValidate onSubmit={handleSubmit} className="grid gap-5">
-              <Field.Root
-                name="name"
-                validate={(value) => validateName(String(value ?? ""))}
-                validationMode="onBlur"
-                className="flex flex-col gap-1.5"
-              >
-                <Field.Label className="text-sm font-medium text-content-secondary">
+            <form noValidate onSubmit={handleSubmit} className="grid gap-5">
+              <div className="flex flex-col gap-1.5">
+                <label for="access-name" className="text-sm font-medium text-content-secondary">
                   Full name{" "}
                   <span className="text-content-error" aria-hidden="true">
                     *
                   </span>
-                </Field.Label>
-                <Field.Control
+                </label>
+                <input
                   ref={nameRef}
+                  id="access-name"
+                  name="name"
                   required
                   aria-required="true"
                   value={values.name}
-                  onChange={(event) => set("name", event.target.value)}
+                  onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
+                  onInput={(event) => set("name", (event.target as HTMLInputElement).value)}
                   placeholder="Ada Lovelace"
                   autoComplete="name"
-                  className={CONTROL_CLASS}
+                  aria-invalid={touched.name && nameError ? "true" : undefined}
+                  aria-describedby={touched.name && nameError ? "name-error" : undefined}
+                  className={`${CONTROL_CLASS} ${touched.name && nameError ? "border-stroke-error focus:border-stroke-error" : ""}`}
                 />
-                <Field.Error className="text-xs text-content-error" />
-              </Field.Root>
+                {touched.name && nameError && (
+                  <p id="name-error" aria-live="polite" className="text-xs text-content-error">
+                    {nameError}
+                  </p>
+                )}
+              </div>
 
-              <Field.Root
-                name="email"
-                validate={(value) => validateEmail(String(value ?? ""))}
-                validationMode="onBlur"
-                className="flex flex-col gap-1.5"
-              >
-                <Field.Label className="text-sm font-medium text-content-secondary">
+              <div className="flex flex-col gap-1.5">
+                <label for="access-email" className="text-sm font-medium text-content-secondary">
                   Work email{" "}
                   <span className="text-content-error" aria-hidden="true">
                     *
                   </span>
-                </Field.Label>
-                <Field.Control
+                </label>
+                <input
                   ref={emailRef}
-                  required
-                  aria-required="true"
+                  id="access-email"
+                  name="email"
                   type="email"
                   inputMode="email"
+                  required
+                  aria-required="true"
                   value={values.email}
-                  onChange={(event) => set("email", event.target.value)}
+                  onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+                  onInput={(event) => set("email", (event.target as HTMLInputElement).value)}
                   placeholder="risk@fund.example"
                   autoComplete="email"
-                  className={CONTROL_CLASS}
+                  aria-invalid={touched.email && emailError ? "true" : undefined}
+                  aria-describedby={touched.email && emailError ? "email-error" : undefined}
+                  className={`${CONTROL_CLASS} ${touched.email && emailError ? "border-stroke-error focus:border-stroke-error" : ""}`}
                 />
-                <Field.Error className="text-xs text-content-error" />
-              </Field.Root>
+                {touched.email && emailError && (
+                  <p id="email-error" aria-live="polite" className="text-xs text-content-error">
+                    {emailError}
+                  </p>
+                )}
+              </div>
 
-              <Field.Root name="org" className="flex flex-col gap-1.5">
-                <Field.Label className="text-sm font-medium text-content-secondary">
+              <div className="flex flex-col gap-1.5">
+                <label for="access-org" className="text-sm font-medium text-content-secondary">
                   {institutional ? "Fund / organisation" : "Nickname (optional)"}
-                </Field.Label>
-                <Field.Control
+                </label>
+                <input
+                  id="access-org"
+                  name="org"
                   value={values.org}
-                  onChange={(event) => set("org", event.target.value)}
+                  onInput={(event) => set("org", (event.target as HTMLInputElement).value)}
                   placeholder={institutional ? "Parlay Capital LP" : "satoshi_fan"}
                   autoComplete="organization"
                   className={CONTROL_CLASS}
                 />
-              </Field.Root>
+              </div>
 
-              <Field.Root name="notional" className="flex flex-col gap-1.5">
-                <Field.Label className="text-sm font-medium text-content-secondary">
+              <div className="flex flex-col gap-1.5">
+                <span id="notional-label" className="text-sm font-medium text-content-secondary">
                   Intended notional
-                </Field.Label>
-                <Select.Root
-                  items={NOTIONAL_BANDS.map((band) => ({ value: band, label: band }))}
+                </span>
+                <Select
+                  ariaLabel="Intended notional band"
+                  id="access-notional"
+                  items={NOTIONAL_BANDS.map((band) => ({
+                    value: band,
+                    node: (
+                      <span className="block px-3 py-2.5 text-sm text-content-default">{band}</span>
+                    ),
+                  }))}
                   value={values.notional}
-                  onValueChange={(value) =>
-                    set("notional", typeof value === "string" ? value : null)
-                  }
+                  onValueChange={(value) => set("notional", value)}
+                  triggerClass={`${CONTROL_CLASS} inline-flex items-center justify-between gap-3 text-left`}
+                  popupClass="min-w-56 rounded-tremor-default border border-stroke-default bg-surface-raise p-1 shadow-menu"
+                  itemClass="rounded-sm outline-none data-[highlighted]:bg-surface-accent"
                 >
-                  <Select.Trigger
-                    aria-label="Intended notional band"
-                    className={`${CONTROL_CLASS} inline-flex items-center justify-between gap-3`}
-                  >
-                    <Select.Value>
-                      <span className={values.notional ? "" : "text-content-tertiary"}>
-                        {values.notional ?? "Select a band…"}
-                      </span>
-                    </Select.Value>
-                    <Select.Icon className="text-content-tertiary">
-                      <span aria-hidden="true">▾</span>
-                    </Select.Icon>
-                  </Select.Trigger>
-                  <Select.Portal>
-                    <Select.Positioner sideOffset={6} className="z-60 outline-none">
-                      <Select.Popup className="min-w-56 rounded-tremor-default border border-stroke-default bg-surface-raise p-1 shadow-menu">
-                        {NOTIONAL_BANDS.map((band) => (
-                          <Select.Item
-                            key={band}
-                            value={band}
-                            className="cursor-pointer rounded-sm px-3 py-2.5 text-sm text-content-default outline-none data-[highlighted]:bg-surface-accent"
-                          >
-                            <Select.ItemText>{band}</Select.ItemText>
-                          </Select.Item>
-                        ))}
-                      </Select.Popup>
-                    </Select.Positioner>
-                  </Select.Portal>
-                </Select.Root>
-              </Field.Root>
+                  <span className={values.notional ? "" : "text-content-tertiary"}>
+                    {values.notional ?? "Select a band…"}
+                  </span>
+                </Select>
+              </div>
 
               <button
                 type="submit"

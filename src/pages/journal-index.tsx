@@ -1,29 +1,8 @@
-import type { Metadata } from "next"
-import Link from "next/link"
 import { Breadcrumb } from "@/components/analysis/primitives"
+import { useHead } from "@/head"
 import { ARTICLES } from "@/lib/blog-content"
 import { buildBreadcrumbLd, SITE, withBasePath } from "@/lib/seo"
-
-export const metadata: Metadata = {
-  title: "Research journal",
-  description:
-    "FAME Protocol research: how the liquidity ratio and emission cap are enforced, and what formal verification honestly covers. Markdown mirrors ship with every piece.",
-  alternates: {
-    canonical: "/journal",
-    types: { "text/plain": withBasePath("/llms.txt") },
-  },
-  openGraph: {
-    type: "website",
-    url: "/journal",
-    siteName: SITE.name,
-    title: "FAME Protocol — Research journal",
-    description:
-      "How the risk engine and the proof set actually work, written for people who verify.",
-    images: [
-      { url: SITE.ogImage, width: 1200, height: 630, alt: "FAME Protocol research journal" },
-    ],
-  },
-}
+import { Link } from "@/router"
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -39,7 +18,7 @@ const HIGHLIGHTS: Record<string, string[]> = {
   "formal-verification-defi-safety": ["214 invariants", "CI-gated proofs", "48h timelock"],
 }
 
-export default function JournalIndexPage() {
+export function JournalIndexPage() {
   const breadcrumbLd = JSON.stringify({
     "@context": "https://schema.org",
     "@graph": [
@@ -58,9 +37,21 @@ export default function JournalIndexPage() {
     ],
   })
 
+  useHead({
+    title: "Research journal | FAME Protocol",
+    description:
+      "FAME Protocol research: how the liquidity ratio and emission cap are enforced, and what formal verification honestly covers. Markdown mirrors ship with every piece.",
+    canonicalPath: "/journal",
+    ogType: "website",
+    ogTitle: "FAME Protocol — Research journal",
+    ogDescription:
+      "How the risk engine and the proof set actually work, written for people who verify.",
+    jsonLd: breadcrumbLd,
+    markdownAlternate: withBasePath("/llms.txt"),
+  })
+
   return (
     <main id="main" className="border-b border-stroke-default">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: breadcrumbLd }} />
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
         <div className="mx-auto max-w-3xl">
           <Breadcrumb

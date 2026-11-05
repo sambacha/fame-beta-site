@@ -1,10 +1,9 @@
-"use client"
-
-import { Component, type ErrorInfo, type ReactNode } from "react"
+import type { ComponentChild, ComponentChildren } from "preact"
+import { Component } from "preact"
 
 type SectionBoundaryProps = {
   sectionName: string
-  children: ReactNode
+  children: ComponentChildren
 }
 
 type SectionBoundaryState = {
@@ -25,15 +24,15 @@ export class SectionBoundary extends Component<SectionBoundaryProps, SectionBoun
     return { hasError: true }
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error(`[FAME] Section "${this.props.sectionName}" crashed:`, error, info.componentStack)
+  componentDidCatch(error: unknown): void {
+    console.error(`[FAME] Section "${this.props.sectionName}" crashed:`, error)
   }
 
   handleRetry = (): void => {
     this.setState((prev) => ({ hasError: false, retries: prev.retries + 1 }))
   }
 
-  render(): ReactNode {
+  render(): ComponentChild {
     if (this.state.hasError) {
       return (
         <div
