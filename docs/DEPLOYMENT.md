@@ -291,3 +291,43 @@ test files/frameworks/unnecessary packages)" pass.
    15/12 chart SVGs render, ≥44px primary targets. Remaining phantom-import
    check: every `from` in `src/` + `scripts/` now resolves to a package.json
    entry or `node:` builtin.
+
+---
+
+## 1.2.1 — Rebuild verification + final dependency sweep
+
+Polya cycle for "rebuild the entire project, fix all dependencies, fix all
+build issues".
+
+1. **Understand** — full-gate baseline from a clean tree: lint ✅, typecheck ✅,
+   `build:pages` ✅ (8 static pages), `verify:artifacts` ✅ (76 files, 955.5 KB
+   gz), smoke ✅ (85 assertions) — the build was already green, so the pass
+   focused on dependency currency and residue. Mechanical audit against the
+   import graph: all 9 runtime + 10 dev deps genuinely used; `bun outdated`
+   reported exactly two majors behind (eslint 9→10, typescript 5.9→7.0);
+   residue still on disk from the 1.0/1.2.0 cleanups: `prisma/schema.prisma`
+   (tracked, zero prisma dependency, no importer — and `verify-artifacts.mjs`
+   actively forbids `prisma/` inside artifacts), the untracked `.env` holding
+   only a dead `DATABASE_URL` → deleted `db/custom.db` (loaded by every build:
+   "Environments: .env"), and `bun-types` (referenced by nothing; `tsc`'s
+   include patterns never type-check `scripts/*.mts`).
+2. **Plan** — delete the residue; drop `bun-types`; attempt both majors with
+   gate evidence, keep each only if the full gate suite stays green; fix the
+   stale README gate table (38 → 85 smoke assertions).
+3. **Carry out** — `prisma/` and `.env` deleted; `bun-types` removed (also
+   drops its transitive `@types/node` + `undici-types` from the lockfile);
+   **eslint ^9 → ^10.14.0 kept** (lint + typecheck green); **typescript
+   ^5.9.3 → 7.0.2 attempted and reverted** — `tsc --noEmit` and `next build`'s
+   own TS step pass on 7.0.2, but the lint gate cannot load:
+   `Error: typescript-eslint does not support TS 7.0.` (thrown from
+   `typescript-eslint/dist/index.js` via `eslint-config-next`), so 7.x is
+   held back until `typescript-eslint` / `eslint-config-next` declare
+   support; README counts corrected.
+4. **Look back** — final toolchain: next 16.4.5 / react 19.3.1 / eslint
+   10.14.0 / typescript 5.9.3 / tailwindcss 4.3.4 / biome 2.6.5. Re-run from
+   the final tree: `bun run test` ✅ (Pages build → 76-file verify, 955.5 KB
+   gz → 85 smoke assertions) and `deploy:cloudflare:dry-run` ✅ (gates at
+   domain-root coordinates — lint, typecheck, root build, verify 954.5 KB,
+   85 smoke assertions, nothing deployed). `bun outdated` now lists only
+   typescript 7.0.2 as available-but-blocked, with the failure mode on
+   record. Local rebuild of the whole site: proven, every gate.

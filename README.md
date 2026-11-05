@@ -13,7 +13,7 @@ bun run dev          # dev server on :3000 (sandbox preview)
 bun run lint         # ESLint + Biome (strict)
 bun run typecheck    # tsc --noEmit
 bun run build        # static export → out/
-bun run test         # verify artifacts + 38 smoke assertions against out/
+bun run test         # verify artifacts + 85 smoke assertions against out/
 bun run start        # serve out/ locally (Pages-style routing)
 ```
 
@@ -25,7 +25,7 @@ bun run start        # serve out/ locally (Pages-style routing)
 | Types | `bun run typecheck` | No TS escape hatches (`ignoreBuildErrors` is off) |
 | Build | `bun run build` | Static export compiles with zero type errors |
 | Artifact verify | `bun run verify:artifacts` | Structure, gzip budgets, JSON-LD, OG, canonical, basePath scope, headers/redirects, manifest |
-| Smoke | `bun run test:smoke` | 38 HTTP assertions against the artifact served with Pages-style routing |
+| Smoke | `bun run test:smoke` | 85 HTTP assertions against the artifact served with Pages-style routing |
 
 Deployment workflows re-run every gate before shipping, then smoke the **live**
 URL after it lands.
