@@ -1,0 +1,361 @@
+FAME PROTOCOL — FULL CONTENT FOR AGENTS (llms-full.txt)
+Canonical index: https://sambacha.github.io/fame-beta-site/fame-beta-site/llms.txt
+
+════════════════════════════════════════════════════════════════════
+  HOME
+════════════════════════════════════════════════════════════════════
+
+---
+title: "FAME Protocol — Formally Verified Parametric Parlay Infrastructure"
+description: "FAME Protocol is formally verified parametric parlay infrastructure: two-leg structured trades with on-chain liquidity ratios, a hard emission cap and slot-level settlement proofs."
+canonical: https://sambacha.github.io/fame-beta-site/fame-beta-site/
+format: text/markdown
+---
+
+# FAME Protocol
+
+> One curve. No insiders.
+
+FAME Protocol is formally verified parametric parlay infrastructure: two-leg structured trades with on-chain liquidity ratios, a hard emission cap and slot-level settlement proofs.
+
+## Protocol stability anchor
+
+Every metric below is derived from program accounts or repository artifacts — not dashboards. Hover any term for its definition; then verify it from primary sources.
+
+### Institutional view
+
+| term | value | detail |
+| --- | --- | --- |
+| Liquidity floor | 1.20 | Current ratio 1.34 · breaker arms at 1.10 |
+| Emission cap | 1.0B | Immutable constant · mint authority burned |
+| Upgrade timelock | 48h | Public countdown before any program change |
+| Invariants re-verified | 214 | Proof set re-runs in CI on every deploy |
+
+### Retail view
+
+| term | value | detail |
+| --- | --- | --- |
+| Backed | 120% | Every claim exceeds its backing by 20% |
+| Supply cap | 1.0B | No hidden printer — the mint key is destroyed |
+| Exit window | 48h | Public notice before any code change |
+| Proof checks | 214 | Automatic safety tests run on every update |
+
+Design parameters: liquidity floor 1.20 · breaker 1.10 · emission cap 1,000,000,000 FAME (immutable, mint authority burned) · 48h upgrade timelock · 214 invariants re-verified in CI on every deploy.
+
+## Why FAME — institutional narrative
+
+### Structured products, trust-me settlement
+
+- Counterparty opacity — you see NAV prints, not the vault; repricing happens inside someone else's black box.
+- Discretionary emissions — treasuries dilute on a vote, and your allocation model eats the variance.
+- Audits as theater — a two-week code sample is treated as a guarantee, until the day it isn't.
+- Upgrade risk — parameters move between quarters, under signatures you never see.
+
+### Arithmetic instead of assurances
+
+- Slot-level liquidity ratio — liquid_backing ÷ withdrawable_liabilities computed on-chain every slot; the 1.20 floor and 1.10 breaker are constants, not policies.
+- A cap that cannot move — 1,000,000,000 FAME in the program's immutable constants, mint authority burned at genesis. Dilution becomes a line item.
+- Proofs over PDFs — 214 invariants (solvency, cap conservation, parley concentration, breaker liveness) re-verified in CI on every deploy.
+- Change calendar, not surprises — every upgrade waits out a 48-hour public timelock with a verifiable exit window.
+
+## Why FAME — retail narrative
+
+### Crypto strategies, casino odds
+
+- Insiders get the good entry — presales and OTC deals price before you even see the chart.
+- Liquidity that vanishes — the moment you need out, the pool is a puddle and the devs are quiet.
+- Jargon as a moat — 'impermanent loss hedging' that means nobody can check anything.
+- Unlimited printers — supply caps that turn out to be a multisig vote away from nothing.
+
+### One curve. No insiders.
+
+- Everyone buys the same public curve at the same slot — no presale, no team allocation, no OTC desk.
+- The money stays in the program — 1.20× backing behind every withdrawable claim, recomputable by you every two seconds.
+- Plain numbers on the page — backed %, supply cap, exit window. If a term confuses you, hover it for the definition.
+- Supply is capped at 1,000,000,000 FAME and the mint key is destroyed. It is math, not a promise.
+
+## Parametric order flow
+
+Three nodes, one state machine: pick the primary trade, filter the second leg by correlation, review the parametric summary. Amount changes recompute the second leg and the payoff automatically.
+
+| node | behaviour |
+| --- | --- |
+| Primary trade | Base-UI Select over the liquid trade set — price, APR and liquidity shown per option. |
+| Second leg | RadioGroup filtered to correlation-safe legs for the chosen primary; read-only sizing derived from the amount. |
+| Parametric summary | Notional, both legs, aggregate correlation and the formally verified settlement path, with the payoff curve beneath. |
+
+Ticket bounds: 1,000 USD. Orders beyond the FAME liquidity bound are rejected with a non-destructive notice — the builder never lets you size into an illiquid pair.
+
+## Request access
+
+Notional onboarding for parley vaults is gated to keep the curve fair. Bring your mandate; we bring the proof pack — program constants, invariant set, and the audit folder.
+
+- Proof pack within 48 hours: constants, invariants, CI configuration.
+- Vault desk for size — OTC settlement with slot-level proofs.
+- Risk API: recompute the liquidity ratio from raw chain state.
+
+Retail access opens in waves so the curve stays honest. Join the list and you will get a plain-language walkthrough before you ever commit capital.
+
+- No minimum size on the public curve.
+- Plain-language guides before any leg is opened.
+- Your exit rights always settle first — by program rule.
+
+---
+
+Canonical HTML version: https://sambacha.github.io/fame-beta-site/fame-beta-site/
+Research journal: https://sambacha.github.io/fame-beta-site/fame-beta-site/journal
+Site index for agents: https://sambacha.github.io/fame-beta-site/fame-beta-site/llms.txt
+
+All figures illustrative unless derived from program constants — verify from primary sources.
+
+════════════════════════════════════════════════════════════════════
+  JOURNAL — liquidity-ratios-emission-caps
+════════════════════════════════════════════════════════════════════
+
+---
+title: "Liquidity Ratios & Emission Caps: Inside FAME's Risk Engine"
+description: "How the FAME Protocol computes liquid backing per slot, why the 1,000,000,000 FAME emission cap is an immutable constant rather than a vote, and a five-step institutional due-diligence checklist for fair-launch DeFi."
+canonical: https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/liquidity-ratios-emission-caps
+date_published: 2026-10-30
+date_modified: 2026-10-30
+read_minutes: 7
+keywords: liquidity ratio, emission cap, DeFi risk management, institutional crypto, fair launch, Solana
+format: text/markdown
+---
+# Inside FAME's risk engine: liquidity ratios & emission caps
+
+> Two numbers constrain everything else in the protocol: how much liquid backing stands behind every withdrawable claim, and how much supply can ever exist. Here is how each is computed, enforced, and — when it matters — broken.
+
+## The liquidity ratio, defined without hand-waving
+
+For any launch, at any slot: liquidity_ratio = liquid_backing ÷ withdrawable_liabilities. Liquid backing is the value held in the launch's program-derived liquidity vault in assets that can be settled immediately — not staked positions, not vested allocations, not IOUs. Withdrawable liabilities is what participants could redeem right now under the launch's own rules: curve holdings above any published lock, plus committed exits.
+
+The ratio is computed on-chain by the program at every slot and written to a program-owned account. That last clause does the heavy lifting: because the computation lives in the same program that enforces the result, any observer can recompute it from raw chain data. There is no official dashboard to trust — the launch console is a view, not a source of truth.
+
+FAME operates the metric as a floor system (figures illustrative): the design floor is 1.20 — backing must exceed claims by at least 20% — and a circuit breaker arms at 1.10. Between the two, the launch accumulates a public warning trail. Below the breaker, the program halts new deposits and emissions automatically. Existing withdrawal rights keep priority; nothing needs to be voted, signed, or negotiated in the middle of a stress event.
+
+
+## Why the emission cap is a constant, not a vote
+
+Most token supply caps are promises with a mint authority still attached. A cap that a multisig can raise is not a cap; it is a mood. FAME's supply ceiling — 1,000,000,000 FAME — is written into the program's immutable constants, and the mint authority is burned at genesis. There is no governance path that raises it. The only way supply logic changes is a full program upgrade, which is gated by a 48-hour public timelock: holders get a verifiable exit window before any change lands.
+
+The cap matters to more than token price. Emissions are the protocol's expenditure budget — the only thing it can spend on liquidity incentives, contributor vesting, or treasury programs. A hard cap turns will-we-be-diluted from a governance question into arithmetic: every emission event is a readable transaction against a known schedule, and the sum can never exceed the constant. For a treasury allocating size, that converts dilution risk from a narrative into a line item.
+
+
+## Reading the risk surface
+
+The institutional view of the safety page exposes five numbers per launch: the two above, plus three operational ones. All five are derived from chain state or repository artifacts. If your risk team cannot reproduce a number from primary sources, treat it as marketing until they can.
+
+- Audit coverage — independent reviews of the program with findings tracked to closure; reports are published in the repository's audit folder.
+- Upgrade timelock — the public countdown any upgrade must wait out; long enough to exit, short enough to patch.
+- Invariant re-verification — the proof set re-runs on every deploy in CI, so upgrades cannot quietly void the guarantees.
+
+## An institutional due-diligence checklist
+
+Before allocating to any fair launch — FAME-deployed or otherwise — five checks take an afternoon and catch most of what matters:
+
+- 1. Recompute the ratio from program accounts, not the frontend. Compare with the published floor and breaker thresholds.
+- 2. Verify the mint authority is actually burned, and the supply cap is an immutable constant — not a parameter a signer can edit.
+- 3. Read the timelock: who can schedule an upgrade, how long is the window, and can you exit inside it?
+- 4. Count the insider supply: team allocations, presales and OTC deals all show up as curve asymmetries. On FAME the answer is zero by construction — verify, don't assume.
+- 5. Re-run the proofs: ask which invariants are machine-checked and whether re-verification is CI-gated on every deploy.
+
+## FAQ
+
+### Where is the liquidity ratio computed?
+
+On-chain, by the FAME program itself, every slot — derived from program-owned accounts so any observer can recompute it without trusting a dashboard.
+### What happens when the circuit breaker trips?
+
+New deposits and emissions halt automatically below the breaker threshold. Existing withdrawal rights keep priority; the launch resumes only when backing is restored above the floor.
+### How is the emission cap enforced?
+
+As an immutable program constant with the mint authority burned at genesis. No vote, multisig, or parameter change can raise it — only a full redeployment, gated by the 48-hour public timelock.
+
+## Data appendix (illustrative, deterministic)
+
+### Liquidity ratio · healthy window (every 6th slot)
+| slot | liquidity_ratio | deposits |
+| --- | --- | --- |
+| 284148 | 1.347 | open |
+| 284142 | 1.338 | open |
+| 284136 | 1.351 | open |
+| 284130 | 1.336 | open |
+| 284124 | 1.342 | open |
+| 284118 | 1.348 | open |
+| 284112 | 1.356 | open |
+| 284106 | 1.359 | open |
+
+### Circuit-breaker stress episode
+| slot | liquidity_ratio | deposits |
+| --- | --- | --- |
+| 301400 | 1.36 | open |
+| 301401 | 1.33 | open |
+| 301402 | 1.31 | open |
+| 301403 | 1.28 | open |
+| 301404 | 1.24 | open |
+| 301405 | 1.19 | open |
+| 301406 | 1.15 | open |
+| 301407 | 1.12 | open |
+| 301408 | 1.09 | halted |
+| 301409 | 1.08 | halted |
+| 301410 | 1.08 | halted |
+| 301411 | 1.08 | halted |
+| 301412 | 1.11 | open |
+| 301413 | 1.16 | open |
+| 301414 | 1.21 | open |
+| 301415 | 1.26 | open |
+| 301416 | 1.3 | open |
+| 301417 | 1.33 | open |
+
+### Emission schedule · cumulative by sleeve (millions of FAME, every 6th month)
+| month | incentives | contributors | treasury | cumulative_total |
+| --- | --- | --- | --- | --- |
+| M6 | 131.1 | 34.8 | 12 | 177.9 |
+| M12 | 228.4 | 69.6 | 24 | 322 |
+| M18 | 301.6 | 104.4 | 36 | 442 |
+| M24 | 357.4 | 139.2 | 48 | 544.6 |
+| M30 | 400.8 | 174 | 60 | 634.8 |
+| M36 | 435.3 | 208.8 | 72 | 716.1 |
+| M42 | 463.4 | 243.6 | 84 | 791 |
+| M48 | 486.9 | 278.4 | 96 | 861.3 |
+
+Cap reference: total supply can never exceed 1,000,000,000 FAME (immutable program constant).
+
+### Structural comparison
+| dimension | FAME Protocol | Typical fair launch | Typical presale launch |
+| --- | --- | --- | --- |
+| Liquidity ratio source | Program-owned account, recomputable every slot | Frontend dashboard, operator-computed | Not published |
+| Backing floor | 1.20 design floor · 1.10 auto-breaker | None — deposits always open | None |
+| Supply cap | Immutable program constant, mint authority burned | Mutable mint authority behind a multisig | Unlimited or undisclosed |
+| Insider allocation | Zero by construction | Team + vesting typically 15–30% | Presale + OTC before public |
+| Upgrade path | 48h public timelock, CI-gated proof re-run | Instant upgrade authority | Undisclosed |
+| Withdrawal priority under stress | Existing rights settle first, by program rule | First-come, first-served | Treasury discretion |
+
+### Backing multiple by launch type (design floor)
+| launch_type | backing_multiple |
+| --- | --- |
+| FAME (floor enforced) | 1.2 |
+| Fair launch (typical) | 1 |
+| Presale launch (typical) | 0.6 |
+
+---
+
+Canonical HTML version: https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/liquidity-ratios-emission-caps
+Site index for agents: https://sambacha.github.io/fame-beta-site/fame-beta-site/llms.txt
+
+Figures marked illustrative are deterministic design parameters, not live chain state. Verify from primary sources: program accounts and the public invariant repository.
+
+
+════════════════════════════════════════════════════════════════════
+  JOURNAL — formal-verification-defi-safety
+════════════════════════════════════════════════════════════════════
+
+---
+title: "Formal Verification Is DeFi's Missing Safety Layer | FAME Protocol"
+description: "Why audits sample code while formal verification proves it: the invariants FAME machine-checks on every deploy, the honest limits of verified DeFi, and the five questions to ask any protocol claiming mathematical guarantees."
+canonical: https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/formal-verification-defi-safety
+date_published: 2026-10-22
+date_modified: 2026-10-22
+read_minutes: 6
+keywords: formal verification, DeFi security, smart contract invariants, audits vs proofs, parametric parlays, on-chain settlement
+format: text/markdown
+---
+# Formal verification is DeFi's missing safety layer
+
+> Audits sample code; proofs exclude it. What mathematical guarantees actually deliver for DeFi launch protocols — and the honest limits of verified.
+
+## The numbers that should bother you
+
+DeFi loses billions a year to bugs that a checklist would have caught. The industry's answer is audits: two or three humans reading code for two weeks and issuing a PDF. An audit is a sample, not a proof — it tells you the auditor did not find what they were looking for, not that it was not there.
+
+Formal verification is a different instrument. Instead of sampling executions, it enumerates the state space the program can occupy and checks that a stated property holds in every one of them. The output is not an opinion; it is a machine-checked derivation that an invariant — for example, the program's liquidity ratio can never be written below the breaker threshold without halting deposits — holds for all reachable states.
+
+
+## How FAME applies it — and where the proof ends
+
+Every invariant that matters to settlement is machine-checked: solvency (liquid backing ≥ withdrawable liabilities at floor), cap conservation (total emitted supply ≤ the 1,000,000,000 constant), parley concentration (exposure between correlated legs stays inside the margin bound), and breaker liveness (below the threshold, deposits halt in the same slot).
+
+The proofs run in CI on every deploy. An upgrade cannot merge without re-verifying the full set, which closes the quiet path most incidents take: not a hostile change, but an innocent refactor that voids a guarantee nobody re-checked. The proof set is published in the repository, so your own team can re-run it rather than take our word for it.
+
+Where the proof ends is equally important to state. Formal verification covers the program, not the world: it says nothing about oracle feeds outside the program boundary, bridge custody, or the market risk of the underlying assets. A verified protocol can still lose money — it just loses money for reasons that were chosen and disclosed, not for reasons hidden in a corner of the state space.
+
+
+## What this means for a launch you're evaluating
+
+Ask five questions. Which invariants are machine-checked, and can you read the statements? Do the proofs re-run in CI on every deploy, or once before launch? Are the properties checked against the deployed program bytecode or a snapshot? What is explicitly out of scope? Who maintains the specification when the code changes?
+
+A protocol that cannot answer should be priced as unaudited, regardless of what the marketing page says. FAME's thesis is that fair launches don't need more trust, more audits or more promises — they need fewer doors: one public curve, liquidity that provably stays, and emissions that can't outrun a constant.
+
+
+## FAQ
+
+### What is the difference between an audit and formal verification?
+
+An audit is a manual, time-boxed review — a sample of behaviours. Formal verification enumerates the reachable state space and machine-checks that stated invariants hold in all of it. FAME re-runs its proof set in CI on every deploy.
+### Does formal verification make a protocol risk-free?
+
+No. It covers the program, not the world: oracle inputs, bridges and market risk sit outside the proof boundary. It removes a class of failure, not the concept of risk.
+### Which FAME invariants are machine-checked?
+
+Solvency at the 1.20 floor, the 1,000,000,000 FAME cap conservation, parley concentration bounds between correlated legs, and breaker liveness when backing falls below 1.10.
+
+## Data appendix (illustrative, deterministic)
+
+### Machine-checked invariant families (214 total)
+| family | invariants |
+| --- | --- |
+| Solvency | 58 |
+| Parley concentration | 49 |
+| Cap conservation | 41 |
+| Breaker liveness | 33 |
+| Account & authority | 33 |
+
+### Invariant ratchet by release
+| release | invariants_reverified |
+| --- | --- |
+| v0.1 | 24 |
+| v0.2 | 47 |
+| v0.3 | 68 |
+| v0.4 | 92 |
+| v0.5 | 104 |
+| v0.6 | 129 |
+| v0.7 | 147 |
+| v0.8 | 168 |
+| v0.9 | 183 |
+| v0.10 | 196 |
+| v0.11 | 208 |
+| v0.12 | 214 |
+
+### Audit sampling vs. exhaustive proof coverage by defect class (%)
+| defect_class | time_boxed_audit | machine_checked_proof |
+| --- | --- | --- |
+| Arithmetic overflow | 35 | 100 |
+| State-transition gaps | 30 | 100 |
+| Authority misuse | 60 | 100 |
+| Economic invariant breach | 15 | 100 |
+
+### Proof boundary
+| domain | inside_proof_set | note |
+| --- | --- | --- |
+| Program state transitions | yes | Every reachable state checked against the invariant set on every deploy. |
+| Solvency & cap conservation | yes | Backing ≥ floor and emissions ≤ 1,000,000,000 FAME are theorem-level properties. |
+| Parley concentration bounds | yes | Correlated-leg exposure provably stays inside the margin bound. |
+| Oracle feeds | no | Inputs from outside the program boundary — priced by risk policy, not proofs. |
+| Bridge custody | no | Assets in flight across bridges sit outside the verified program. |
+| Market risk | no | A verified protocol can still lose value on the underlying assets. |
+
+### CI verification pipeline
+| step | detail |
+| --- | --- |
+| Specification | Invariants stated as machine-checkable properties in the public repository. |
+| Proof run | Full state-space check against the candidate program build. |
+| CI gate | Merge blocked unless all 214 invariants re-verify on the exact bytecode. |
+| Timelock | 48-hour public countdown with a verifiable exit window before activation. |
+
+---
+
+Canonical HTML version: https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/formal-verification-defi-safety
+Site index for agents: https://sambacha.github.io/fame-beta-site/fame-beta-site/llms.txt
+
+Figures marked illustrative are deterministic design parameters, not live chain state. Verify from primary sources: program accounts and the public invariant repository.

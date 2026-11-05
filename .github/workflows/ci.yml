@@ -1,0 +1,55 @@
+name: CI
+
+# Quality gates on every PR and every push to main. Deployment workflows
+# re-run this exact sequence — nothing ships without passing it first.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gates:
+    name: Lint · typecheck · build · verify · smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Set up Node (verification scripts)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Compute GitHub Pages coordinates
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          echo "OWNER=$OWNER" >> "$GITHUB_ENV"
+          echo "REPO=$REPO" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint — ESLint + Biome, strict
+        run: bun run lint
+
+      - name: Typecheck — no escape hatches
+        run: bun run typecheck
+
+      - name: Static export build (GitHub Pages coordinates)
+        run: bun run build:pages
+
+      - name: Verify compiled artifacts
+        run: node scripts/verify-artifacts.mjs --root out --base /$REPO --site-url https://${OWNER}.github.io/${REPO}
+
+      - name: Smoke tests (subpath mount, Pages routing)
+        run: node scripts/smoke.mjs --root out --mount /$REPO --site-url https://${OWNER}.github.io/${REPO}

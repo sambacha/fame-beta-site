@@ -1,0 +1,24 @@
+# FAME Protocol
+
+> One curve. No insiders. Formally verified parametric parlay infrastructure: two-leg structured trades with on-chain liquidity ratios, a hard emission cap and slot-level settlement proofs.
+
+This site ships markdown mirrors of every indexable page so research agents can read the canonical content without rendering JavaScript. Figures marked illustrative are deterministic design parameters — verify from primary sources (program accounts, public invariant repository).
+
+## Pages
+
+- [Home](https://sambacha.github.io/fame-beta-site/fame-beta-site/): landing page — protocol stability anchor, problem/solution narrative, parametric order flow, request access.
+- [Liquidity Ratios & Emission Caps: Inside FAME's Risk Engine](https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/liquidity-ratios-emission-caps): How the FAME Protocol computes liquid backing per slot, why the 1,000,000,000 FAME emission cap is an immutable constant rather than a vote, and a five-step institutional due-diligence checklist for fair-launch DeFi.
+- [Formal Verification Is DeFi's Missing Safety Layer | FAME Protocol](https://sambacha.github.io/fame-beta-site/fame-beta-site/journal/formal-verification-defi-safety): Why audits sample code while formal verification proves it: the invariants FAME machine-checks on every deploy, the honest limits of verified DeFi, and the five questions to ask any protocol claiming mathematical guarantees.
+
+## Markdown sources
+
+- [Home (markdown)](https://sambacha.github.io/fame-beta-site/fame-beta-site/sources/home.md): the complete landing-page content as markdown.
+- [Liquidity Ratios & Emission Caps: Inside FAME's Risk Engine (markdown)](https://sambacha.github.io/fame-beta-site/fame-beta-site/sources/analysis/liquidity-ratios-emission-caps.md): full article with data appendix.
+- [Formal Verification Is DeFi's Missing Safety Layer | FAME Protocol (markdown)](https://sambacha.github.io/fame-beta-site/fame-beta-site/sources/analysis/formal-verification-defi-safety.md): full article with data appendix.
+
+## Machine-readable
+
+- [llms-full.txt](https://sambacha.github.io/fame-beta-site/fame-beta-site/llms-full.txt): all of the above content in one plain-text file.
+- [Sitemap](https://sambacha.github.io/fame-beta-site/fame-beta-site/sitemap.xml): every canonical URL.
+- [robots.txt](https://sambacha.github.io/fame-beta-site/fame-beta-site/robots.txt): crawl policy (allow all).
+- [Repository](https://github.com/Fairmeme3/fame-program): program source, invariant set, audit folder.

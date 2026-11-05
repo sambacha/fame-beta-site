@@ -1,0 +1,104 @@
+name: Deploy to GitHub Pages
+
+# Ships the static export to the GitHub Pages project site
+# (https://<owner>.github.io/<repo>/) — but only after every quality gate
+# passes: lint → typecheck → build → artifact verification → smoke tests.
+# Requires Settings → Pages → Build and deployment → Source: "GitHub Actions".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Gates → static export → verify → smoke → package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Set up Node (verification scripts)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Compute GitHub Pages coordinates
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          echo "SITE_URL=https://${OWNER}.github.io/${REPO}" >> "$GITHUB_ENV"
+          echo "BASE_PATH=/${REPO}" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint — ESLint + Biome, strict
+        run: bun run lint
+
+      - name: Typecheck — no escape hatches
+        run: bun run typecheck
+
+      - name: Static export build (Pages coordinates)
+        env:
+          STATIC_EXPORT: "1"
+          NEXT_PUBLIC_SITE_URL: ${{ env.SITE_URL }}
+          NEXT_PUBLIC_BASE_PATH: ${{ env.BASE_PATH }}
+        run: bun run build
+
+      - name: Verify compiled artifacts
+        run: node scripts/verify-artifacts.mjs --root out --base "$BASE_PATH" --site-url "$SITE_URL"
+
+      - name: Smoke tests (subpath mount, Pages routing)
+        run: node scripts/smoke.mjs --root out --mount "$BASE_PATH" --site-url "$SITE_URL"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  post-deploy-smoke:
+    name: Post-deploy smoke (live URL)
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out verification scripts
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Smoke the live deployment
+        run: node scripts/smoke.mjs --url "${{ needs.deploy.outputs.url }}" --retries 8 --retry-delay-ms 15000

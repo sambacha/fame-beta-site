@@ -1,0 +1,4 @@
+User-Agent: *
+Allow: /
+
+Sitemap: https://sambacha.github.io/fame-beta-site/sitemap.xml
