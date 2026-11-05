@@ -1,8 +1,12 @@
 {
   "name": "fame-protocol-landing",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sambacha/fame-beta-site.git"
+  },
   "scripts": {
     "dev": "vite --port 3000",
     "sources": "bun scripts/generate-content-sources.mts",
@@ -12,11 +16,11 @@
     "typecheck": "tsc --noEmit",
     "format": "biome format --write src scripts",
     "build": "bun run sources && vite build && bun run shells",
-    "build:pages": "VITE_SITE_URL=https://fairmeme3.github.io VITE_BASE_PATH=/fame-program bun run build",
+    "build:pages": "VITE_SITE_URL=https://sambacha.github.io VITE_BASE_PATH=/fame-beta-site bun run build",
     "build:root": "VITE_SITE_URL=https://fame-protocol.pages.dev bun run build",
     "start": "node scripts/serve.mjs --root dist",
-    "verify:artifacts": "node scripts/verify-artifacts.mjs --root dist --base /fame-program --site-url https://fairmeme3.github.io/fame-program",
-    "test:smoke": "node scripts/smoke.mjs --root dist --mount /fame-program --site-url https://fairmeme3.github.io/fame-program",
+    "verify:artifacts": "node scripts/verify-artifacts.mjs --root dist --base /fame-beta-site --site-url https://sambacha.github.io/fame-beta-site",
+    "test:smoke": "node scripts/smoke.mjs --root dist --mount /fame-beta-site --site-url https://sambacha.github.io/fame-beta-site",
     "test": "bun run build:pages && bun run verify:artifacts && bun run test:smoke",
     "deploy:pages": "bun run build:pages && node scripts/deploy-pages.mjs",
     "deploy:pages:dry-run": "bun run build:pages && node scripts/deploy-pages.mjs --dry-run",

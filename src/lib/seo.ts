@@ -27,12 +27,12 @@ export function withBasePath(path: string): string {
 
 export const SITE = {
   name: "FAME Protocol",
-  url: envValue("VITE_SITE_URL") ?? "https://fairmeme3.github.io",
+  url: envValue("VITE_SITE_URL") ?? "https://sambacha.github.io",
   tagline: "One curve. No insiders.",
   description:
     "FAME Protocol is formally verified parametric parlay infrastructure: two-leg structured trades with on-chain liquidity ratios, a hard emission cap and slot-level settlement proofs.",
   ogImage: withBasePath("/og-image.png"),
-  repo: "https://github.com/Fairmeme3/fame-program",
+  repo: "https://github.com/sambacha/fame-beta-site",
 } as const
 
 export type LdGraphNode = Record<string, unknown>

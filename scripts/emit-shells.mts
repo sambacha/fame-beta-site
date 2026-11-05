@@ -26,7 +26,7 @@ import { buildArticleLd, buildBreadcrumbLd, buildFaqLd, buildLdGraph, SITE } fro
 const ROOT = join(import.meta.dir, "..")
 const DIST = join(ROOT, "dist")
 
-const SITE_URL = (process.env.VITE_SITE_URL ?? "https://fairmeme3.github.io").replace(/\/+$/, "")
+const SITE_URL = (process.env.VITE_SITE_URL ?? "https://sambacha.github.io").replace(/\/+$/, "")
 const BASE_PATH = (process.env.VITE_BASE_PATH ?? "").replace(/\/+$/, "")
 
 const shell = readFileSync(join(DIST, "index.html"), "utf8")

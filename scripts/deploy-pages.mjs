@@ -47,7 +47,7 @@ function run(name, command, args, cmdEnv = {}) {
 
 /* ── Preflight ────────────────────────────────────────────────────────────── */
 if (!existsSync("package.json")) die("run from the repository root")
-if (!DRY_RUN && !/fairmeme3\.github\.io/.test(env.VITE_SITE_URL ?? "")) {
+if (!DRY_RUN && !/sambacha\.github\.io/.test(env.VITE_SITE_URL ?? "")) {
   die(
     "VITE_SITE_URL does not look like GitHub Pages coordinates — " +
       "use `bun run deploy:pages` (which sets them) or export VITE_SITE_URL manually",
@@ -65,18 +65,18 @@ run("Verify compiled artifacts", "node", [
   "--root",
   "dist",
   "--base",
-  "/fame-program",
+  "/fame-beta-site",
   "--site-url",
-  "https://fairmeme3.github.io/fame-program",
+  "https://sambacha.github.io/fame-beta-site",
 ])
 run("Smoke tests (Pages routing)", "node", [
   "scripts/smoke.mjs",
   "--root",
   "dist",
   "--mount",
-  "/fame-program",
+  "/fame-beta-site",
   "--site-url",
-  "https://fairmeme3.github.io/fame-program",
+  "https://sambacha.github.io/fame-beta-site",
 ])
 
 if (DRY_RUN) {
@@ -98,7 +98,7 @@ ghpages.publish(
     if (error) die(`gh-pages publish failed: ${error.message}`)
     console.info(
       "\n[deploy:gh] PUBLISHED — gh-pages branch updated." +
-        "\n           Live at https://fairmeme3.github.io/fame-program/ (CDN warm-up may take a minute)." +
+        "\n           Live at https://sambacha.github.io/fame-beta-site/ (CDN warm-up may take a minute)." +
         '\n           Pages source must be "Deploy from a branch: gh-pages / (root)".',
     )
   },

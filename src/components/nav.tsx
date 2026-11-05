@@ -50,8 +50,7 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <div
-            role="group"
+          <fieldset
             aria-label="Content perspective"
             className="grid auto-cols-fr grid-flow-col rounded-tremor-default border border-stroke-default bg-surface-secondary p-1"
           >
@@ -67,7 +66,7 @@ export function Nav() {
                 {value === "institutional" ? "Institutional" : "Retail"}
               </button>
             ))}
-          </div>
+          </fieldset>
 
           <Link
             href="/#access"

@@ -9,7 +9,7 @@ import { resolve } from "node:path"
  * - `bun run dev`: no env vars → dev server on :3000, GitHub Pages defaults.
  * - `bun run build`: static SPA bundle into `dist/`.
  *     VITE_SITE_URL    → canonical/OG/sitemap absolute origin (seo.ts).
- *     VITE_BASE_PATH   → project-site subpath, e.g. /fame-program (GitHub
+ *     VITE_BASE_PATH   → project-site subpath, e.g. /fame-beta-site (GitHub
  *                        Pages). Leave unset for Cloudflare root deploys.
  *
  * The client reads both through `import.meta.env` (statically replaced at

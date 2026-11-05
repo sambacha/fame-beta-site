@@ -367,7 +367,7 @@ export function BarChart({
               const offset = (categoryIndex - (categories.length - 1) / 2) * (barWidth + 4)
               return (
                 <rect
-                  key={`${category}-${i}`}
+                  key={`${category}-${String(point[index])}`}
                   x={groupStart + groupWidth / 2 + offset - barWidth / 2}
                   y={yScale(value)}
                   width={barWidth}
@@ -380,7 +380,7 @@ export function BarChart({
           )}
           {data.map((point, i) => (
             <text
-              key={`${String(point[index])}-${i}`}
+              key={String(point[index])}
               x={margin.left + yAxisWidth + i * groupWidth + groupWidth / 2}
               y={height - 6}
               text-anchor="middle"
@@ -463,15 +463,25 @@ export function CategoryBar({
   className?: string
 }) {
   const total = values.reduce((sum, value) => sum + value, 0) || 1
+  // Content-derived keys (color+value, disambiguated across repeats) instead
+  // of array indexes: the strip is static, but this keeps reconciliation
+  // correct even if the composition data is reordered or contains duplicates.
+  const seen = new Map<string, number>()
   return (
     <div class={`flex h-2 w-full gap-0.5 overflow-hidden rounded-tremor-full ${className}`}>
-      {values.map((value, i) => (
-        <div
-          key={i}
-          class={`h-full ${fillClass(colors[i])}`}
-          style={{ width: `${(value / total) * 100}%` }}
-        />
-      ))}
+      {values.map((value, i) => {
+        const color = colors[i] ?? "gray"
+        const base = `${color}-${value}`
+        const occurrences = seen.get(base) ?? 0
+        seen.set(base, occurrences + 1)
+        return (
+          <div
+            key={occurrences === 0 ? base : `${base}·${occurrences + 1}`}
+            class={`h-full ${fillClass(color)}`}
+            style={{ width: `${(value / total) * 100}%` }}
+          />
+        )
+      })}
     </div>
   )
 }
@@ -486,9 +496,10 @@ export function Tracker({
 }) {
   return (
     <div class={`flex items-start gap-0.5 ${className}`}>
-      {data.map((slot, i) => (
+      {/* tooltip carries the slot identity (unique settlement-slot label) */}
+      {data.map((slot) => (
         <div
-          key={i}
+          key={slot.tooltip}
           title={slot.tooltip}
           class={`h-8 flex-1 rounded-sm ${fillClass(slot.color)}`}
         />

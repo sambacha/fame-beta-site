@@ -35,7 +35,7 @@ Deployment workflows re-run every gate before shipping, then smoke the
 
 ## Deployment
 
-### GitHub Pages (project site) — the `gh-pages` package
+### GitHub Pages — live at https://sambacha.github.io/fame-beta-site/
 
 - Script option (same gates, run locally): `bun run deploy:pages` —
   lint → typecheck → build at Pages coordinates → verify → smoke →

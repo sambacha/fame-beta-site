@@ -58,7 +58,7 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="inline-flex min-h-11 items-center text-content-secondary transition-colors hover:text-content-default"
               >
-                GitHub — fame-program
+                GitHub — fame-beta-site
               </a>
             </li>
           </ul>

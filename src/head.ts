@@ -29,7 +29,7 @@ const BASE_PATH = (
 ).replace(/\/+$/, "")
 const SITE_URL = (
   (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_SITE_URL ??
-  "https://fairmeme3.github.io"
+  "https://sambacha.github.io"
 ).replace(/\/+$/, "")
 
 function upsertMeta(selector: string, attr: "name" | "property", key: string, content: string) {

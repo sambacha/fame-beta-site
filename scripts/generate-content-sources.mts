@@ -21,7 +21,7 @@ import { articleToMarkdown, homeToMarkdown } from "../src/lib/markdown"
 const ROOT = resolve(import.meta.dir, "..")
 const PUBLIC = join(ROOT, "public")
 
-const SITE_URL = (process.env.VITE_SITE_URL ?? "https://fairmeme3.github.io").replace(/\/+$/, "")
+const SITE_URL = (process.env.VITE_SITE_URL ?? "https://sambacha.github.io").replace(/\/+$/, "")
 const BASE_PATH = (process.env.VITE_BASE_PATH ?? "").replace(/\/+$/, "")
 
 const url = (path: string) => `${SITE_URL}${BASE_PATH}${path}`
@@ -66,7 +66,7 @@ const llms = [
   `- [llms-full.txt](${url("/llms-full.txt")}): all of the above content in one plain-text file.`,
   `- [Sitemap](${url("/sitemap.xml")}): every canonical URL.`,
   `- [robots.txt](${url("/robots.txt")}): crawl policy (allow all).`,
-  `- [Repository](${process.env.VITE_REPO_URL ?? "https://github.com/Fairmeme3/fame-program"}): program source, invariant set, audit folder.`,
+  `- [Repository](${process.env.VITE_REPO_URL ?? "https://github.com/sambacha/fame-beta-site"}): program source, invariant set, audit folder.`,
   "",
 ].join("\n")
 writeFileSync(join(PUBLIC, "llms.txt"), llms)
