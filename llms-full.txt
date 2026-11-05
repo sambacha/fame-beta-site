@@ -1,5 +1,5 @@
 FAME PROTOCOL — FULL CONTENT FOR AGENTS (llms-full.txt)
-Canonical index: https://fairmeme3.github.io/fame-program/llms.txt
+Canonical index: https://sambacha.github.io/fame-beta-site/llms.txt
 
 ════════════════════════════════════════════════════════════════════
   HOME
@@ -8,7 +8,7 @@ Canonical index: https://fairmeme3.github.io/fame-program/llms.txt
 ---
 title: "FAME Protocol — Formally Verified Parametric Parlay Infrastructure"
 description: "FAME Protocol is formally verified parametric parlay infrastructure: two-leg structured trades with on-chain liquidity ratios, a hard emission cap and slot-level settlement proofs."
-canonical: https://fairmeme3.github.io/fame-program/
+canonical: https://sambacha.github.io/fame-beta-site/
 format: text/markdown
 ---
 
@@ -102,9 +102,9 @@ Retail access opens in waves so the curve stays honest. Join the list and you wi
 
 ---
 
-Canonical HTML version: https://fairmeme3.github.io/fame-program/
-Research journal: https://fairmeme3.github.io/fame-program/journal
-Site index for agents: https://fairmeme3.github.io/fame-program/llms.txt
+Canonical HTML version: https://sambacha.github.io/fame-beta-site/
+Research journal: https://sambacha.github.io/fame-beta-site/journal
+Site index for agents: https://sambacha.github.io/fame-beta-site/llms.txt
 
 All figures illustrative unless derived from program constants — verify from primary sources.
 
@@ -115,7 +115,7 @@ All figures illustrative unless derived from program constants — verify from p
 ---
 title: "Liquidity Ratios & Emission Caps: Inside FAME's Risk Engine"
 description: "How the FAME Protocol computes liquid backing per slot, why the 1,000,000,000 FAME emission cap is an immutable constant rather than a vote, and a five-step institutional due-diligence checklist for fair-launch DeFi."
-canonical: https://fairmeme3.github.io/fame-program/journal/liquidity-ratios-emission-caps
+canonical: https://sambacha.github.io/fame-beta-site/journal/liquidity-ratios-emission-caps
 date_published: 2026-10-30
 date_modified: 2026-10-30
 read_minutes: 7
@@ -241,8 +241,8 @@ Cap reference: total supply can never exceed 1,000,000,000 FAME (immutable progr
 
 ---
 
-Canonical HTML version: https://fairmeme3.github.io/fame-program/journal/liquidity-ratios-emission-caps
-Site index for agents: https://fairmeme3.github.io/fame-program/llms.txt
+Canonical HTML version: https://sambacha.github.io/fame-beta-site/journal/liquidity-ratios-emission-caps
+Site index for agents: https://sambacha.github.io/fame-beta-site/llms.txt
 
 Figures marked illustrative are deterministic design parameters, not live chain state. Verify from primary sources: program accounts and the public invariant repository.
 
@@ -254,7 +254,7 @@ Figures marked illustrative are deterministic design parameters, not live chain 
 ---
 title: "Formal Verification Is DeFi's Missing Safety Layer | FAME Protocol"
 description: "Why audits sample code while formal verification proves it: the invariants FAME machine-checks on every deploy, the honest limits of verified DeFi, and the five questions to ask any protocol claiming mathematical guarantees."
-canonical: https://fairmeme3.github.io/fame-program/journal/formal-verification-defi-safety
+canonical: https://sambacha.github.io/fame-beta-site/journal/formal-verification-defi-safety
 date_published: 2026-10-22
 date_modified: 2026-10-22
 read_minutes: 6
@@ -355,7 +355,7 @@ Solvency at the 1.20 floor, the 1,000,000,000 FAME cap conservation, parley conc
 
 ---
 
-Canonical HTML version: https://fairmeme3.github.io/fame-program/journal/formal-verification-defi-safety
-Site index for agents: https://fairmeme3.github.io/fame-program/llms.txt
+Canonical HTML version: https://sambacha.github.io/fame-beta-site/journal/formal-verification-defi-safety
+Site index for agents: https://sambacha.github.io/fame-beta-site/llms.txt
 
 Figures marked illustrative are deterministic design parameters, not live chain state. Verify from primary sources: program accounts and the public invariant repository.

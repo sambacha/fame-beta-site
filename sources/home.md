@@ -1,7 +1,7 @@
 ---
 title: "FAME Protocol — Formally Verified Parametric Parlay Infrastructure"
 description: "FAME Protocol is formally verified parametric parlay infrastructure: two-leg structured trades with on-chain liquidity ratios, a hard emission cap and slot-level settlement proofs."
-canonical: https://fairmeme3.github.io/fame-program/
+canonical: https://sambacha.github.io/fame-beta-site/
 format: text/markdown
 ---
 
@@ -95,8 +95,8 @@ Retail access opens in waves so the curve stays honest. Join the list and you wi
 
 ---
 
-Canonical HTML version: https://fairmeme3.github.io/fame-program/
-Research journal: https://fairmeme3.github.io/fame-program/journal
-Site index for agents: https://fairmeme3.github.io/fame-program/llms.txt
+Canonical HTML version: https://sambacha.github.io/fame-beta-site/
+Research journal: https://sambacha.github.io/fame-beta-site/journal
+Site index for agents: https://sambacha.github.io/fame-beta-site/llms.txt
 
 All figures illustrative unless derived from program constants — verify from primary sources.

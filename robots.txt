@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://fairmeme3.github.io/fame-program/sitemap.xml
+Sitemap: https://sambacha.github.io/fame-beta-site/sitemap.xml

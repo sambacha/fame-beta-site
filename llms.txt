@@ -6,19 +6,19 @@ This site ships markdown mirrors of every indexable page so research agents can 
 
 ## Pages
 
-- [Home](https://fairmeme3.github.io/fame-program/): landing page — protocol stability anchor, problem/solution narrative, parametric order flow, request access.
-- [Liquidity Ratios & Emission Caps: Inside FAME's Risk Engine](https://fairmeme3.github.io/fame-program/journal/liquidity-ratios-emission-caps): How the FAME Protocol computes liquid backing per slot, why the 1,000,000,000 FAME emission cap is an immutable constant rather than a vote, and a five-step institutional due-diligence checklist for fair-launch DeFi.
-- [Formal Verification Is DeFi's Missing Safety Layer | FAME Protocol](https://fairmeme3.github.io/fame-program/journal/formal-verification-defi-safety): Why audits sample code while formal verification proves it: the invariants FAME machine-checks on every deploy, the honest limits of verified DeFi, and the five questions to ask any protocol claiming mathematical guarantees.
+- [Home](https://sambacha.github.io/fame-beta-site/): landing page — protocol stability anchor, problem/solution narrative, parametric order flow, request access.
+- [Liquidity Ratios & Emission Caps: Inside FAME's Risk Engine](https://sambacha.github.io/fame-beta-site/journal/liquidity-ratios-emission-caps): How the FAME Protocol computes liquid backing per slot, why the 1,000,000,000 FAME emission cap is an immutable constant rather than a vote, and a five-step institutional due-diligence checklist for fair-launch DeFi.
+- [Formal Verification Is DeFi's Missing Safety Layer | FAME Protocol](https://sambacha.github.io/fame-beta-site/journal/formal-verification-defi-safety): Why audits sample code while formal verification proves it: the invariants FAME machine-checks on every deploy, the honest limits of verified DeFi, and the five questions to ask any protocol claiming mathematical guarantees.
 
 ## Markdown sources
 
-- [Home (markdown)](https://fairmeme3.github.io/fame-program/sources/home.md): the complete landing-page content as markdown.
-- [Liquidity Ratios & Emission Caps: Inside FAME's Risk Engine (markdown)](https://fairmeme3.github.io/fame-program/sources/analysis/liquidity-ratios-emission-caps.md): full article with data appendix.
-- [Formal Verification Is DeFi's Missing Safety Layer | FAME Protocol (markdown)](https://fairmeme3.github.io/fame-program/sources/analysis/formal-verification-defi-safety.md): full article with data appendix.
+- [Home (markdown)](https://sambacha.github.io/fame-beta-site/sources/home.md): the complete landing-page content as markdown.
+- [Liquidity Ratios & Emission Caps: Inside FAME's Risk Engine (markdown)](https://sambacha.github.io/fame-beta-site/sources/analysis/liquidity-ratios-emission-caps.md): full article with data appendix.
+- [Formal Verification Is DeFi's Missing Safety Layer | FAME Protocol (markdown)](https://sambacha.github.io/fame-beta-site/sources/analysis/formal-verification-defi-safety.md): full article with data appendix.
 
 ## Machine-readable
 
-- [llms-full.txt](https://fairmeme3.github.io/fame-program/llms-full.txt): all of the above content in one plain-text file.
-- [Sitemap](https://fairmeme3.github.io/fame-program/sitemap.xml): every canonical URL.
-- [robots.txt](https://fairmeme3.github.io/fame-program/robots.txt): crawl policy (allow all).
-- [Repository](https://github.com/Fairmeme3/fame-program): program source, invariant set, audit folder.
+- [llms-full.txt](https://sambacha.github.io/fame-beta-site/llms-full.txt): all of the above content in one plain-text file.
+- [Sitemap](https://sambacha.github.io/fame-beta-site/sitemap.xml): every canonical URL.
+- [robots.txt](https://sambacha.github.io/fame-beta-site/robots.txt): crawl policy (allow all).
+- [Repository](https://github.com/sambacha/fame-beta-site): program source, invariant set, audit folder.
